@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval' blob:; worker-src blob:; style-src 'unsafe-inline'; img-src blob: data:; font-src data: blob:; connect-src blob: data:">
+<title>PDF Tool</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='5' y='2' width='22' height='28' rx='4' fill='%23e5484d'/%3E%3Cpath d='M11 12h10M11 17h10M11 22h6' stroke='white' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#f5f5f4; --surface:#ffffff; --surface-2:#fafaf9; --border:#e7e5e4; --border-strong:#d6d3d1;
+  --text:#1c1917; --muted:#78716c; --accent:#e5484d; --accent-hover:#d53d42; --accent-soft:#fdecec;
+  --sel:#2563eb; --sel-soft:rgba(37,99,235,.12); --shadow:0 1px 2px rgba(0,0,0,.05),0 4px 14px rgba(0,0,0,.06);
+  --shadow-lg:0 20px 50px rgba(0,0,0,.18); --radius:12px; color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#131312; --surface:#1c1b1a; --surface-2:#232220; --border:#2e2c2a; --border-strong:#3d3a37;
+    --text:#f2f0ee; --muted:#a19d98; --accent:#ef5a5f; --accent-hover:#f36c70; --accent-soft:rgba(239,90,95,.14);
+    --sel:#5b8cff; --sel-soft:rgba(91,140,255,.16); --shadow:0 1px 2px rgba(0,0,0,.4),0 4px 14px rgba(0,0,0,.3);
+    --shadow-lg:0 20px 50px rgba(0,0,0,.6); color-scheme:dark;
+  }
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased;display:flex;flex-direction:column}
+button,input{font:inherit;color:inherit}
+svg{display:block}
+
+/* ---------- header ---------- */
+header{display:flex;align-items:center;gap:12px;padding:12px 20px;background:var(--surface);border-bottom:1px solid var(--border);flex-wrap:wrap;position:sticky;top:0;z-index:20}
+.brand{display:flex;align-items:center;gap:10px;font-weight:650;font-size:16px;letter-spacing:-.01em;margin-right:4px}
+.brand .logo{width:30px;height:30px;border-radius:8px;background:var(--accent);display:grid;place-items:center;color:#fff}
+.badge{font-size:11.5px;font-weight:550;color:#15803d;background:rgba(22,163,74,.1);border-radius:999px;padding:3px 9px;display:inline-flex;align-items:center;gap:5px}
+@media (prefers-color-scheme:dark){.badge{color:#4ade80;background:rgba(74,222,128,.1)}}
+.spacer{flex:1}
+.btn{display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 14px;border-radius:9px;border:1px solid var(--border-strong);background:var(--surface);cursor:pointer;font-weight:550;white-space:nowrap;transition:background .12s,border-color .12s,opacity .12s}
+.btn:hover{background:var(--surface-2);border-color:var(--muted)}
+.btn:disabled{opacity:.45;cursor:default;pointer-events:none}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{background:var(--accent-hover);border-color:var(--accent-hover)}
+.btn.ghost{border-color:transparent;background:transparent}
+.btn.ghost:hover{background:var(--surface-2)}
+.btn.icon{padding:0;width:36px;justify-content:center}
+.btn.danger:hover{color:var(--accent);border-color:var(--accent)}
+.namebox{display:flex;align-items:center;height:36px;border:1px solid var(--border-strong);border-radius:9px;background:var(--surface);overflow:hidden;min-width:0}
+.namebox:focus-within{border-color:var(--sel);box-shadow:0 0 0 3px var(--sel-soft)}
+.namebox input{border:0;outline:0;background:transparent;padding:0 4px 0 12px;width:220px;min-width:80px;height:100%}
+.namebox span{color:var(--muted);padding-right:12px}
+
+/* ---------- toolbar ---------- */
+.toolbar{display:flex;align-items:center;gap:8px;padding:10px 20px;border-bottom:1px solid var(--border);background:var(--surface-2);flex-wrap:wrap;min-height:56px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;flex:1;min-width:0}
+.chip{display:inline-flex;align-items:center;gap:7px;height:30px;padding:0 6px 0 10px;border-radius:8px;background:var(--surface);border:1px solid var(--border);font-size:13px;max-width:280px}
+.chip .dot{width:9px;height:9px;border-radius:3px;flex:none}
+.chip .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chip .ct{color:var(--muted);font-size:12px;flex:none}
+.chip button{border:0;background:transparent;width:22px;height:22px;border-radius:6px;display:grid;place-items:center;cursor:pointer;color:var(--muted);flex:none}
+.chip button:hover{background:var(--surface-2);color:var(--accent)}
+.selinfo{color:var(--muted);font-size:13px;margin-right:4px;white-space:nowrap}
+.sep{width:1px;height:22px;background:var(--border-strong);margin:0 4px}
+
+/* ---------- grid ---------- */
+main{flex:1;overflow:auto;position:relative}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(172px,1fr));gap:18px;padding:22px 20px 60px}
+.card{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px 10px 8px;box-shadow:var(--shadow);cursor:pointer;user-select:none;transition:border-color .12s,box-shadow .12s,transform .12s,opacity .12s}
+.card:hover{border-color:var(--border-strong)}
+.card.sel{border-color:var(--sel);box-shadow:0 0 0 3px var(--sel-soft),var(--shadow)}
+.card.dragging{opacity:.35}
+.card.drop-before::before,.card.drop-after::after{content:"";position:absolute;top:6px;bottom:6px;width:4px;border-radius:4px;background:var(--sel)}
+.card.drop-before::before{left:-11px}
+.card.drop-after::after{right:-11px}
+.thumb{aspect-ratio:1/1;display:grid;place-items:center;background:var(--surface-2);border-radius:8px;overflow:hidden}
+.thumb canvas{box-shadow:0 1px 3px rgba(0,0,0,.18);background:#fff;transition:transform .2s ease}
+.thumb .ph{width:60%;aspect-ratio:1/1.3;background:var(--border);border-radius:3px;animation:pulse 1.2s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.5}}
+.meta{display:flex;align-items:center;gap:6px;margin-top:8px;font-size:12.5px}
+.meta .num{font-weight:650}
+.meta .src{color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;text-align:right;font-size:11.5px}
+.meta .dot{width:8px;height:8px;border-radius:3px;flex:none}
+.check{position:absolute;top:16px;left:16px;width:22px;height:22px;border-radius:7px;border:2px solid var(--border-strong);background:var(--surface);display:grid;place-items:center;color:#fff;opacity:0;transition:opacity .12s}
+.card:hover .check,.card.sel .check{opacity:1}
+.card.sel .check{background:var(--sel);border-color:var(--sel)}
+.card:not(.sel) .check svg{visibility:hidden}
+.actions{position:absolute;top:14px;right:14px;display:flex;flex-direction:column;gap:4px;opacity:0;transition:opacity .12s}
+.card:hover .actions{opacity:1}
+.actions button{width:30px;height:30px;border-radius:8px;border:1px solid var(--border);background:var(--surface);display:grid;place-items:center;cursor:pointer;box-shadow:var(--shadow);color:var(--text)}
+.actions button:hover{border-color:var(--sel);color:var(--sel)}
+.actions button.del:hover{border-color:var(--accent);color:var(--accent)}
+.rotbadge{position:absolute;bottom:44px;right:16px;font-size:11px;font-weight:650;background:var(--sel);color:#fff;border-radius:6px;padding:1px 6px}
+@media (hover:none){.actions,.check{opacity:1}}
+
+/* ---------- empty state ---------- */
+.empty{position:absolute;inset:0;display:grid;place-items:center;padding:24px}
+.drop{width:min(560px,100%);border:2px dashed var(--border-strong);border-radius:20px;padding:48px 28px;text-align:center;background:var(--surface);cursor:pointer;transition:border-color .15s,background .15s}
+.drop:hover{border-color:var(--accent);background:var(--accent-soft)}
+.drop .big{width:64px;height:64px;border-radius:16px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;margin:0 auto 16px}
+.drop h2{margin:0 0 6px;font-size:20px;letter-spacing:-.01em}
+.drop p{margin:0;color:var(--muted)}
+.feats{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin-top:22px}
+.feats span{font-size:12px;border:1px solid var(--border);border-radius:999px;padding:3px 10px;color:var(--muted)}
+.hint{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);font-size:12px;color:var(--muted);background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:5px 14px;box-shadow:var(--shadow);white-space:nowrap;z-index:5}
+.hint kbd{font:11px ui-monospace,monospace;border:1px solid var(--border-strong);border-bottom-width:2px;border-radius:4px;padding:0 4px;background:var(--surface-2)}
+@media (max-width:760px){.hint{display:none}}
+
+/* ---------- overlays ---------- */
+.dropzone{position:fixed;inset:0;background:rgba(229,72,77,.1);border:3px dashed var(--accent);z-index:50;display:none;place-items:center;pointer-events:none}
+.dropzone.on{display:grid}
+.dropzone div{background:var(--surface);padding:16px 26px;border-radius:14px;box-shadow:var(--shadow-lg);font-weight:600;font-size:16px}
+.modal-bg{position:fixed;inset:0;background:rgba(10,10,10,.45);backdrop-filter:blur(3px);z-index:60;display:none;place-items:center;padding:20px}
+.modal-bg.on{display:grid}
+.modal{background:var(--surface);border-radius:16px;box-shadow:var(--shadow-lg);width:min(640px,100%);max-height:calc(100vh - 40px);display:flex;flex-direction:column;border:1px solid var(--border)}
+.modal header{position:static;border-radius:16px 16px 0 0;padding:16px 20px}
+.modal header h3{margin:0;font-size:16px}
+.modal .body{padding:18px 20px;overflow:auto}
+.modal footer{display:flex;gap:8px;justify-content:flex-end;padding:14px 20px;border-top:1px solid var(--border);flex-wrap:wrap}
+.opts{display:grid;gap:8px}
+.opt{display:flex;align-items:center;gap:10px;border:1px solid var(--border);border-radius:10px;padding:10px 12px;cursor:pointer}
+.opt:has(input:checked){border-color:var(--sel);background:var(--sel-soft)}
+.opt input[type=radio]{accent-color:var(--sel);margin:0}
+.opt .t{font-weight:600}
+.opt .d{color:var(--muted);font-size:12.5px}
+.opt input[type=number],.opt input[type=text],.field{height:32px;border:1px solid var(--border-strong);border-radius:8px;background:var(--surface);padding:0 10px;outline:0}
+.opt input[type=number]{width:72px}
+.opt input[type=text]{flex:1;min-width:120px}
+.field:focus,.opt input:focus{border-color:var(--sel);box-shadow:0 0 0 3px var(--sel-soft)}
+.err{color:var(--accent);font-size:13px;margin-top:10px;min-height:1em}
+.parts{margin-top:16px;display:grid;gap:6px}
+.parts h4{margin:0 0 4px;font-size:13px;color:var(--muted);font-weight:600}
+.part{display:flex;align-items:center;gap:8px}
+.part .field{flex:1;min-width:0}
+.part .pg{font-size:12px;color:var(--muted);width:110px;flex:none;text-align:right}
+.part .btn{height:32px}
+
+.preview .modal{width:min(1000px,100%);height:calc(100vh - 40px)}
+.pv-stage{flex:1;display:grid;place-items:center;overflow:auto;background:var(--surface-2);padding:16px}
+.pv-stage canvas{box-shadow:0 2px 12px rgba(0,0,0,.25);background:#fff}
+
+.busy{position:fixed;inset:0;z-index:80;display:none;place-items:center;background:rgba(10,10,10,.35)}
+.busy.on{display:grid}
+.busy div{background:var(--surface);border-radius:14px;padding:18px 24px;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow-lg);font-weight:550}
+.spin{width:20px;height:20px;border-radius:50%;border:3px solid var(--border-strong);border-top-color:var(--accent);animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.toasts{position:fixed;bottom:18px;right:18px;display:grid;gap:8px;z-index:90}
+.toast{background:var(--text);color:var(--bg);padding:10px 16px;border-radius:10px;box-shadow:var(--shadow-lg);font-size:13.5px;max-width:380px;animation:tin .18s ease-out}
+.toast.bad{background:var(--accent);color:#fff}
+@keyframes tin{from{transform:translateY(8px);opacity:0}}
+@media (max-width:640px){
+  header,.toolbar{padding-left:16px;padding-right:16px}
+  .grid{padding:16px;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:14px}
+  .namebox input{width:120px}
+  .btn .lbl{display:none}
+  .chips{flex-basis:100%}
+  .selinfo{flex:1}
+  .btn:not(.icon){padding:0 11px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand"><div class="logo"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M7 7h10M7 12h10M7 17h6"/></svg></div>PDF Tool</div>
+  <span class="badge" title="Nessun dato lascia il tuo computer: tutto viene elaborato localmente nel browser."><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>100% offline</span>
+  <div class="spacer"></div>
+  <button class="btn" id="bAdd" title="Aggiungi PDF (puoi anche trascinarli)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span class="lbl">Aggiungi PDF</span></button>
+  <button class="btn" id="bSplit" disabled title="Dividi in più PDF"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.1 15.9M14.5 14.5 20 20M8.1 8.1 12 12"/></svg><span class="lbl">Dividi…</span></button>
+  <div class="namebox" title="Nome del file da salvare"><input id="outName" placeholder="nome-file" spellcheck="false" autocomplete="off"><span>.pdf</span></div>
+  <button class="btn primary" id="bSave" disabled title="Salva PDF (Ctrl+S)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg><span class="lbl">Salva PDF</span></button>
+</header>
+
+<div class="toolbar" id="toolbar" hidden>
+  <div class="chips" id="chips"></div>
+  <span class="selinfo" id="selInfo"></span>
+  <button class="btn ghost" id="bSelAll">Seleziona tutto</button>
+  <div class="sep"></div>
+  <button class="btn icon" id="bRotL" title="Ruota a sinistra (Maiusc+R)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg></button>
+  <button class="btn icon" id="bRotR" title="Ruota a destra (R)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg></button>
+  <button class="btn icon danger" id="bDel" title="Elimina pagine selezionate (Canc)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg></button>
+  <button class="btn" id="bSaveSel" title="Salva solo le pagine selezionate in un nuovo PDF">Estrai selezione</button>
+  <div class="sep"></div>
+  <button class="btn icon" id="bUndo" title="Annulla (Ctrl+Z)" disabled><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></button>
+  <button class="btn icon" id="bClear" title="Chiudi tutto"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+</div>
+
+<main id="main">
+  <div class="empty" id="empty">
+    <div class="drop" id="dropCard" role="button" tabindex="0">
+      <div class="big"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M12 11v6M9 14l3-3 3 3"/></svg></div>
+      <h2>Trascina qui i tuoi PDF</h2>
+      <p>oppure clicca per sceglierli dal computer</p>
+      <div class="feats"><span>Elimina pagine</span><span>Ruota</span><span>Riordina</span><span>Unisci</span><span>Dividi</span><span>Rinomina</span></div>
+    </div>
+  </div>
+  <div class="grid" id="grid"></div>
+</main>
+<div class="hint" id="hint" hidden>Clic per selezionare · <kbd>Maiusc</kbd>+clic per un intervallo · trascina per riordinare · doppio clic per ingrandire · <kbd>Canc</kbd> elimina · <kbd>R</kbd> ruota · <kbd>Ctrl</kbd>+<kbd>Z</kbd> annulla</div>
+
+<input type="file" id="file" accept="application/pdf,.pdf" multiple hidden>
+<div class="dropzone" id="dropzone"><div>Rilascia per aggiungere i PDF</div></div>
+
+<!-- split -->
+<div class="modal-bg" id="splitModal">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="splitTitle">
+    <header><h3 id="splitTitle">Dividi in più PDF</h3><div class="spacer"></div><button class="btn ghost icon" data-close title="Chiudi"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></header>
+    <div class="body">
+      <div class="opts">
+        <label class="opt"><input type="radio" name="smode" value="each" checked><div><div class="t">Una pagina per file</div><div class="d">Ogni pagina diventa un PDF separato</div></div></label>
+        <label class="opt"><input type="radio" name="smode" value="n"><div style="flex:1"><div class="t">Ogni N pagine</div><div class="d">Blocchi di pagine della stessa lunghezza</div></div><input type="number" id="sN" min="1" value="2"></label>
+        <label class="opt"><input type="radio" name="smode" value="ranges"><div style="flex:none"><div class="t">Intervalli</div><div class="d">Es. 1-3, 4-7, 8</div></div><input type="text" id="sRanges" placeholder="1-3, 4-7, 8-" spellcheck="false"></label>
+        <label class="opt"><input type="radio" name="smode" value="src"><div><div class="t">Per file di origine</div><div class="d">Separa di nuovo le pagine in base al PDF da cui provengono</div></div></label>
+      </div>
+      <div class="err" id="sErr"></div>
+      <div class="parts" id="sParts"></div>
+    </div>
+    <footer>
+      <button class="btn" data-close>Annulla</button>
+      <button class="btn" id="sDownloadAll">Scarica tutti</button>
+      <button class="btn primary" id="sFolder">Salva tutti in una cartella…</button>
+    </footer>
+  </div>
+</div>
+
+<!-- preview -->
+<div class="modal-bg preview" id="pvModal">
+  <div class="modal" role="dialog" aria-modal="true">
+    <header>
+      <h3 id="pvTitle">Pagina</h3><div class="spacer"></div>
+      <button class="btn icon" id="pvPrev" title="Precedente (←)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
+      <button class="btn icon" id="pvNext" title="Successiva (→)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
+      <div class="sep"></div>
+      <button class="btn icon" id="pvRotL" title="Ruota a sinistra"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg></button>
+      <button class="btn icon" id="pvRotR" title="Ruota a destra"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg></button>
+      <button class="btn icon danger" id="pvDel" title="Elimina pagina"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg></button>
+      <div class="sep"></div>
+      <button class="btn ghost icon" data-close title="Chiudi (Esc)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </header>
+    <div class="pv-stage" id="pvStage"></div>
+  </div>
+</div>
+
+<div class="busy" id="busy"><div><span class="spin"></span><span id="busyText">Elaborazione…</span></div></div>
+<div class="toasts" id="toasts"></div>
+
+<!--@@LIBS@@-->
+
+<script type="module">
+/* ============================================================
+   PDF Tool — tutto avviene nel browser, nessun dato esce dal PC.
+   ============================================================ */
+const { PDFDocument, degrees } = window.PDFLib;
+const pdfjsLib = globalThis.pdfjsLib;
+
+/* Worker di pdf.js da blob (funziona anche da file://). Il fetch nel worker è
+   bloccato: serve solo i moduli WASM incorporati, qualsiasi altra richiesta fallisce. */
+{
+  const code = document.getElementById("pdfjs-worker").textContent;
+  pdfjsLib.GlobalWorkerOptions.workerSrc = URL.createObjectURL(new Blob([code], { type: "text/javascript" }));
+}
+const PDFJS_OPTS = { wasmUrl: "embedded:/", useWorkerFetch: true, isEvalSupported: true, useSystemFonts: true, stopAtErrors: false };
+
+const $ = (s, r = document) => r.querySelector(s);
+const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const COLORS = ["#e5484d", "#3b82f6", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899", "#14b8a6", "#f97316", "#6366f1", "#84cc16"];
+const ICON = {
+  rotL: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>',
+  rotR: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>',
+  del: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>',
+  zoom: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5M11 8v6M8 11h6"/></svg>',
+  check: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>',
+  x: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>',
+};
+
+/* ---------------- stato ---------------- */
+const S = {
+  docs: new Map(),   // id -> { id, name, bytes, pjs, color, libDoc }
+  pages: [],         // [{ id, docId, index, rot, sel }]
+  undo: [],
+  cards: new Map(),  // page.id -> element
+  nextDoc: 1, nextPage: 1, anchor: null, dirty: false,
+};
+
+/* ---------------- utilità UI ---------------- */
+function toast(msg, bad = false) {
+  const t = el("div", "toast" + (bad ? " bad" : ""), esc(msg));
+  $("#toasts").append(t);
+  setTimeout(() => t.remove(), bad ? 6000 : 3500);
+}
+function busy(text) { $("#busyText").textContent = text || "Elaborazione…"; $("#busy").classList.add("on"); }
+function idle() { $("#busy").classList.remove("on"); }
+const nextFrame = () => new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));
+
+function cleanName(s) {
+  s = String(s || "").replace(/\.pdf$/i, "").replace(/[\\/:*?"<>|\u0000-\u001f]/g, "_").replace(/\s+/g, " ").trim().replace(/^\.+/, "");
+  return s || "documento";
+}
+const withPdf = s => cleanName(s) + ".pdf";
+const baseName = () => cleanName($("#outName").value || $("#outName").placeholder);
+
+/* ---------------- undo ---------------- */
+function snapshot() {
+  S.undo.push(S.pages.map(p => ({ ...p })));
+  if (S.undo.length > 60) S.undo.shift();
+  S.dirty = true;
+  $("#bUndo").disabled = false;
+}
+function undo() {
+  const prev = S.undo.pop();
+  if (!prev) return;
+  S.pages = prev;
+  $("#bUndo").disabled = !S.undo.length;
+  render();
+}
+
+/* ---------------- caricamento ---------------- */
+async function addFiles(fileList) {
+  const files = [...fileList].filter(f => /\.pdf$/i.test(f.name) || f.type === "application/pdf");
+  if (!files.length) { toast("Nessun PDF trovato tra i file selezionati.", true); return; }
+  busy(files.length > 1 ? `Apertura di ${files.length} file…` : "Apertura del file…");
+  let added = 0;
+  const firstLoad = S.pages.length === 0;
+  const before = S.pages.map(p => ({ ...p }));
+  try {
+    for (const f of files) {
+      try {
+        const bytes = new Uint8Array(await f.arrayBuffer());
+        const pjs = await pdfjsLib.getDocument({ ...PDFJS_OPTS, data: bytes.slice() }).promise;
+        const id = S.nextDoc++;
+        const doc = { id, name: f.name, bytes, pjs, color: COLORS[(id - 1) % COLORS.length], libDoc: null };
+        S.docs.set(id, doc);
+        for (let i = 0; i < pjs.numPages; i++) S.pages.push({ id: S.nextPage++, docId: id, index: i, rot: 0, sel: false });
+        added++;
+      } catch (e) {
+        console.error(e);
+        const msg = e && e.name === "PasswordException" ? `"${f.name}" è protetto da password e non può essere aperto.` : `Impossibile aprire "${f.name}": il file sembra danneggiato o non è un PDF valido.`;
+        toast(msg, true);
+      }
+    }
+  } finally { idle(); }
+  if (!added) return;
+  S.undo.push(before); $("#bUndo").disabled = false; S.dirty = true;
+  if (firstLoad && !$("#outName").value) {
+    $("#outName").value = added === 1 ? cleanName(files[0].name) : "unione";
+  }
+  render();
+  if (!firstLoad) toast(added === 1 ? "PDF aggiunto in coda." : `${added} PDF aggiunti in coda.`);
+}
+
+/* ---------------- miniature ---------------- */
+const THUMB = 150;
+const io = new IntersectionObserver(entries => {
+  for (const e of entries) if (e.isIntersecting) { io.unobserve(e.target); drawThumb(e.target); }
+}, { root: $("#main"), rootMargin: "400px" });
+
+async function drawThumb(card) {
+  const p = S.pages.find(x => x.id === +card.dataset.id);
+  if (!p) return;
+  const doc = S.docs.get(p.docId);
+  try {
+    const page = await doc.pjs.getPage(p.index + 1);
+    const vp1 = page.getViewport({ scale: 1 });
+    const scale = THUMB / Math.max(vp1.width, vp1.height);
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const vp = page.getViewport({ scale: scale * dpr });
+    const c = document.createElement("canvas");
+    c.width = Math.ceil(vp.width); c.height = Math.ceil(vp.height);
+    c.style.width = (vp.width / Math.max(vp.width, vp.height) * 94).toFixed(2) + "%"; c.style.height = "auto";
+    await page.render({ canvasContext: c.getContext("2d"), viewport: vp }).promise;
+    const box = card.querySelector(".thumb");
+    box.replaceChildren(c);
+    applyRot(card, p);
+  } catch (e) { console.warn(e); card.querySelector(".thumb").innerHTML = '<span style="color:var(--muted);font-size:12px">Anteprima non disponibile</span>'; }
+}
+function applyRot(card, p) {
+  const c = card.querySelector("canvas");
+  if (c) c.style.transform = `rotate(${p.rot}deg)`;
+  let b = card.querySelector(".rotbadge");
+  if (p.rot) { if (!b) { b = el("span", "rotbadge"); card.append(b); } b.textContent = `${p.rot}°`; }
+  else if (b) b.remove();
+}
+
+function makeCard(p) {
+  const card = el("div", "card");
+  card.dataset.id = p.id;
+  card.draggable = true;
+  card.innerHTML = `<div class="thumb"><div class="ph"></div></div>
+    <div class="check">${ICON.check}</div>
+    <div class="actions">
+      <button data-act="rotL" title="Ruota a sinistra">${ICON.rotL}</button>
+      <button data-act="rotR" title="Ruota a destra">${ICON.rotR}</button>
+      <button data-act="zoom" title="Ingrandisci">${ICON.zoom}</button>
+      <button data-act="del" class="del" title="Elimina pagina">${ICON.del}</button>
+    </div>
+    <div class="meta"><span class="dot"></span><span class="num"></span><span class="src"></span></div>`;
+  io.observe(card);
+  return card;
+}
+
+/* ---------------- render ---------------- */
+function render() {
+  const grid = $("#grid");
+  const has = S.pages.length > 0;
+  $("#empty").hidden = has;
+  $("#toolbar").hidden = !has;
+  $("#hint").hidden = !has;
+  $("#bSave").disabled = !has;
+  $("#bSplit").disabled = S.pages.length < 2;
+
+  const alive = new Set(S.pages.map(p => p.id));
+  for (const [id, c] of S.cards) if (!alive.has(id)) { io.unobserve(c); c.remove(); S.cards.delete(id); }
+
+  const multi = new Set(S.pages.map(p => p.docId)).size > 1;
+  S.pages.forEach((p, i) => {
+    let c = S.cards.get(p.id);
+    if (!c) { c = makeCard(p); S.cards.set(p.id, c); }
+    const d = S.docs.get(p.docId);
+    c.classList.toggle("sel", p.sel);
+    c.querySelector(".num").textContent = i + 1;
+    const dot = c.querySelector(".meta .dot");
+    dot.style.background = d.color; dot.style.display = multi ? "" : "none";
+    const src = c.querySelector(".src");
+    src.textContent = multi ? `${d.name.replace(/\.pdf$/i, "")} · p.${p.index + 1}` : (p.index !== i ? `orig. p.${p.index + 1}` : "");
+    src.title = `${d.name}, pagina ${p.index + 1}`;
+    applyRot(c, p);
+    if (grid.children[i] !== c) grid.insertBefore(c, grid.children[i] || null);
+  });
+
+  // chip dei file
+  const counts = new Map();
+  S.pages.forEach(p => counts.set(p.docId, (counts.get(p.docId) || 0) + 1));
+  const chips = $("#chips");
+  chips.replaceChildren();
+  for (const [id, n] of counts) {
+    const d = S.docs.get(id);
+    const ch = el("div", "chip", `<span class="dot" style="background:${d.color}"></span><span class="nm" title="${esc(d.name)}">${esc(d.name)}</span><span class="ct">${n} pag.</span><button title="Rimuovi questo file">${ICON.x}</button>`);
+    ch.querySelector("button").onclick = () => { snapshot(); S.pages = S.pages.filter(p => p.docId !== id); render(); };
+    chips.append(ch);
+  }
+  updateSel();
+}
+function updateSel() {
+  const n = S.pages.filter(p => p.sel).length;
+  const tot = S.pages.length;
+  $("#selInfo").textContent = n ? `${n} di ${tot} selezionate` : `${tot} ${tot === 1 ? "pagina" : "pagine"}`;
+  $("#bSelAll").textContent = n === tot && tot ? "Deseleziona" : "Seleziona tutto";
+  for (const id of ["#bRotL", "#bRotR", "#bDel", "#bSaveSel"]) $(id).disabled = !n;
+  for (const p of S.pages) S.cards.get(p.id)?.classList.toggle("sel", p.sel);
+}
+
+/* ---------------- azioni sulle pagine ---------------- */
+function rotate(ids, d) {
+  if (!ids.length) return;
+  snapshot();
+  for (const p of S.pages) if (ids.includes(p.id)) { p.rot = (((p.rot + d) % 360) + 360) % 360; applyRot(S.cards.get(p.id), p); }
+}
+function remove(ids) {
+  if (!ids.length) return;
+  snapshot();
+  S.pages = S.pages.filter(p => !ids.includes(p.id));
+  render();
+  toast(ids.length === 1 ? "Pagina eliminata. Ctrl+Z per annullare." : `${ids.length} pagine eliminate. Ctrl+Z per annullare.`);
+}
+const selIds = () => S.pages.filter(p => p.sel).map(p => p.id);
+
+$("#grid").addEventListener("click", e => {
+  const card = e.target.closest(".card"); if (!card) return;
+  const id = +card.dataset.id;
+  const btn = e.target.closest("button[data-act]");
+  if (btn) {
+    const a = btn.dataset.act;
+    if (a === "rotL") rotate([id], -90);
+    if (a === "rotR") rotate([id], 90);
+    if (a === "del") remove([id]);
+    if (a === "zoom") openPreview(id);
+    return;
+  }
+  const idx = S.pages.findIndex(p => p.id === id);
+  if (e.shiftKey && S.anchor != null) {
+    const a = S.pages.findIndex(p => p.id === S.anchor);
+    if (a >= 0) { const [lo, hi] = a < idx ? [a, idx] : [idx, a]; for (let i = lo; i <= hi; i++) S.pages[i].sel = true; }
+  } else {
+    S.pages[idx].sel = !S.pages[idx].sel;
+    S.anchor = id;
+  }
+  updateSel();
+});
+$("#grid").addEventListener("dblclick", e => {
+  const card = e.target.closest(".card");
+  if (card && !e.target.closest("button")) openPreview(+card.dataset.id);
+});
+
+/* ---------------- drag & drop (riordino) ---------------- */
+let dragIds = null, dropTarget = null;
+function clearDrop() { if (dropTarget) dropTarget.el.classList.remove("drop-before", "drop-after"); dropTarget = null; }
+$("#grid").addEventListener("dragstart", e => {
+  const card = e.target.closest(".card"); if (!card) return;
+  const id = +card.dataset.id;
+  const p = S.pages.find(x => x.id === id);
+  dragIds = p.sel ? selIds() : [id];
+  e.dataTransfer.effectAllowed = "move";
+  e.dataTransfer.setData("text/x-pdftool", "1");
+  requestAnimationFrame(() => dragIds && dragIds.forEach(i => S.cards.get(i)?.classList.add("dragging")));
+});
+$("#grid").addEventListener("dragend", () => {
+  S.cards.forEach(c => c.classList.remove("dragging")); clearDrop(); dragIds = null;
+});
+$("#grid").addEventListener("dragover", e => {
+  if (!dragIds) return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect = "move";
+  let card = e.target.closest(".card");
+  let after;
+  if (card) {
+    const r = card.getBoundingClientRect();
+    after = e.clientX > r.left + r.width / 2;
+  } else {
+    // spazio vuoto: trova la card più vicina
+    let best = null, bd = Infinity;
+    for (const c of S.cards.values()) {
+      const r = c.getBoundingClientRect();
+      const dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2);
+      const d = dx * dx + dy * dy * 4;
+      if (d < bd) { bd = d; best = c; }
+    }
+    if (!best) return;
+    card = best; const r = card.getBoundingClientRect(); after = e.clientX > r.left + r.width / 2;
+  }
+  if (!dropTarget || dropTarget.el !== card || dropTarget.after !== after) {
+    clearDrop();
+    dropTarget = { el: card, after };
+    card.classList.add(after ? "drop-after" : "drop-before");
+  }
+  // autoscroll
+  const m = $("#main"), mr = m.getBoundingClientRect();
+  if (e.clientY < mr.top + 60) m.scrollTop -= 14; else if (e.clientY > mr.bottom - 60) m.scrollTop += 14;
+});
+$("#grid").addEventListener("drop", e => {
+  if (!dragIds || !dropTarget) return;
+  e.preventDefault(); e.stopPropagation();
+  const targetId = +dropTarget.el.dataset.id, after = dropTarget.after;
+  const moving = S.pages.filter(p => dragIds.includes(p.id));
+  const rest = S.pages.filter(p => !dragIds.includes(p.id));
+  let at;
+  if (dragIds.includes(targetId)) {
+    // rilasciato su se stesso: posizione dell'originale
+    at = rest.findIndex(p => S.pages.indexOf(p) > S.pages.findIndex(q => q.id === targetId));
+    if (at < 0) at = rest.length;
+  } else {
+    at = rest.findIndex(p => p.id === targetId) + (after ? 1 : 0);
+  }
+  const next = [...rest.slice(0, at), ...moving, ...rest.slice(at)];
+  clearDrop();
+  if (next.some((p, i) => p !== S.pages[i])) { snapshot(); S.pages = next; render(); }
+});
+
+/* ---------------- file dal sistema operativo ---------------- */
+let dragDepth = 0;
+const isFileDrag = e => e.dataTransfer && [...e.dataTransfer.types].includes("Files");
+window.addEventListener("dragenter", e => { if (isFileDrag(e)) { dragDepth++; $("#dropzone").classList.add("on"); } });
+window.addEventListener("dragleave", e => { if (isFileDrag(e) && --dragDepth <= 0) { dragDepth = 0; $("#dropzone").classList.remove("on"); } });
+window.addEventListener("dragover", e => { if (isFileDrag(e)) e.preventDefault(); });
+window.addEventListener("drop", e => {
+  if (!isFileDrag(e)) return;
+  e.preventDefault(); dragDepth = 0; $("#dropzone").classList.remove("on");
+  if (e.dataTransfer.files.length) addFiles(e.dataTransfer.files);
+});
+$("#file").addEventListener("change", e => { if (e.target.files.length) addFiles(e.target.files); e.target.value = ""; });
+$("#bAdd").onclick = () => $("#file").click();
+$("#dropCard").onclick = () => $("#file").click();
+$("#dropCard").onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("#file").click(); } };
+
+/* ---------------- generazione PDF ---------------- */
+async function libDoc(doc) {
+  if (!doc.libDoc) doc.libDoc = await PDFDocument.load(doc.bytes, { ignoreEncryption: true, updateMetadata: false });
+  return doc.libDoc;
+}
+async function buildPdf(pages, title) {
+  const out = await PDFDocument.create();
+  const byDoc = new Map();
+  for (const p of pages) { if (!byDoc.has(p.docId)) byDoc.set(p.docId, []); byDoc.get(p.docId).push(p.index); }
+  const copied = new Map();
+  for (const [docId, idx] of byDoc) {
+    const src = await libDoc(S.docs.get(docId));
+    const uniq = [...new Set(idx)];
+    const res = await out.copyPages(src, uniq);
+    uniq.forEach((ix, k) => copied.set(docId + ":" + ix, res[k]));
+  }
+  for (const p of pages) {
+    const pg = copied.get(p.docId + ":" + p.index);
+    if (p.rot) pg.setRotation(degrees((((pg.getRotation().angle + p.rot) % 360) + 360) % 360));
+    out.addPage(pg);
+  }
+  if (title) out.setTitle(title);
+  out.setProducer("PDF Tool");
+  out.setCreator("PDF Tool");
+  return out.save();
+}
+
+function download(bytes, name) {
+  const url = URL.createObjectURL(new Blob([bytes], { type: "application/pdf" }));
+  const a = el("a"); a.href = url; a.download = name;
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 30000);
+}
+
+/* Salva un file: con "Salva con nome" nativo se il browser lo supporta (Chrome/Edge), altrimenti download. */
+async function saveOne(pages, name) {
+  name = withPdf(name);
+  let handle = null;
+  if (window.showSaveFilePicker) {
+    try {
+      handle = await window.showSaveFilePicker({ suggestedName: name, types: [{ description: "Documento PDF", accept: { "application/pdf": [".pdf"] } }] });
+    } catch (e) {
+      if (e.name === "AbortError") return false;
+      handle = null; // non supportato in questo contesto: si usa il download
+    }
+  }
+  busy("Creazione del PDF…"); await nextFrame();
+  try {
+    const bytes = await buildPdf(pages, name.replace(/\.pdf$/i, ""));
+    if (handle) {
+      const w = await handle.createWritable(); await w.write(bytes); await w.close();
+      toast(`Salvato: ${handle.name}`);
+    } else {
+      download(bytes, name);
+      toast(`Scaricato: ${name}`);
+    }
+    return true;
+  } catch (e) {
+    console.error(e); toast("Errore durante il salvataggio: " + (e.message || e), true); return false;
+  } finally { idle(); }
+}
+
+$("#bSave").onclick = async () => { if (S.pages.length && await saveOne(S.pages, baseName())) S.dirty = false; };
+$("#bSaveSel").onclick = () => { const sel = S.pages.filter(p => p.sel); if (sel.length) saveOne(sel, baseName() + "_estratto"); };
+
+/* ---------------- divisione ---------------- */
+let parts = [];
+function computeParts() {
+  const mode = document.querySelector('input[name=smode]:checked').value;
+  const n = S.pages.length, base = baseName();
+  const err = $("#sErr"); err.textContent = "";
+  let groups = [];
+  if (mode === "each") groups = S.pages.map((_, i) => [i, i]);
+  else if (mode === "n") {
+    const k = Math.max(1, parseInt($("#sN").value, 10) || 0);
+    for (let i = 0; i < n; i += k) groups.push([i, Math.min(n, i + k) - 1]);
+  } else if (mode === "ranges") {
+    const txt = $("#sRanges").value.trim();
+    if (!txt) { err.textContent = "Scrivi gli intervalli, ad esempio: 1-3, 4-7, 8-"; }
+    for (const tok of txt.split(/[,;]+/).map(s => s.trim()).filter(Boolean)) {
+      const m = tok.match(/^(\d+)?\s*(-)?\s*(\d+)?$/);
+      if (!m || (!m[1] && !m[3])) { err.textContent = `Intervallo non valido: "${tok}"`; groups = []; break; }
+      let a = m[1] ? +m[1] : 1, b = m[2] ? (m[3] ? +m[3] : n) : a;
+      if (a < 1 || b > n || a > b) { err.textContent = `"${tok}" è fuori dalle pagine disponibili (1–${n}).`; groups = []; break; }
+      groups.push([a - 1, b - 1]);
+    }
+  } else if (mode === "src") {
+    let cur = null;
+    S.pages.forEach((p, i) => { if (cur && S.pages[cur[0]].docId === p.docId && cur[1] === i - 1) cur[1] = i; else { cur = [i, i]; groups.push(cur); } });
+  }
+  const pad = String(groups.length).length;
+  const seen = new Set();
+  parts = groups.map(([a, b], k) => {
+    let name;
+    if (mode === "src") name = cleanName(S.docs.get(S.pages[a].docId).name);
+    else if (mode === "each") name = `${base}_pag${String(a + 1).padStart(String(n).length, "0")}`;
+    else name = `${base}_parte${String(k + 1).padStart(pad, "0")}`;
+    let nm = name, j = 2; while (seen.has(nm.toLowerCase())) nm = `${name}_${j++}`; seen.add(nm.toLowerCase());
+    return { from: a, to: b, name: nm };
+  });
+  drawParts();
+}
+function drawParts() {
+  const box = $("#sParts");
+  box.replaceChildren();
+  $("#sFolder").disabled = $("#sDownloadAll").disabled = !parts.length;
+  if (!parts.length) return;
+  box.append(el("h4", null, `Verranno creati ${parts.length} file — puoi rinominarli:`));
+  const show = parts.slice(0, 200);
+  show.forEach((pt, i) => {
+    const row = el("div", "part");
+    const inp = el("input", "field"); inp.value = pt.name; inp.spellcheck = false;
+    inp.oninput = () => { pt.name = inp.value; };
+    const pg = el("span", "pg", pt.from === pt.to ? `pag. ${pt.from + 1}` : `pag. ${pt.from + 1}–${pt.to + 1}`);
+    const b = el("button", "btn", "Salva"); b.title = "Salva solo questo file";
+    b.onclick = () => saveOne(S.pages.slice(pt.from, pt.to + 1), pt.name);
+    row.append(inp, pg, b); box.append(row);
+  });
+  if (parts.length > show.length) box.append(el("div", "pg", `…e altri ${parts.length - show.length} file`));
+}
+function openSplit() {
+  if (S.pages.length < 2) return;
+  $("#splitModal").classList.add("on");
+  $("#sFolder").hidden = !window.showDirectoryPicker;
+  $("#sDownloadAll").classList.toggle("primary", !window.showDirectoryPicker);
+  computeParts();
+}
+$("#bSplit").onclick = openSplit;
+document.querySelectorAll('input[name=smode]').forEach(r => r.onchange = computeParts);
+$("#sN").oninput = () => { document.querySelector('input[value=n]').checked = true; computeParts(); };
+$("#sRanges").oninput = () => { document.querySelector('input[value=ranges]').checked = true; computeParts(); };
+$("#sRanges").onfocus = () => { document.querySelector('input[value=ranges]').checked = true; computeParts(); };
+
+function uniqueNames() {
+  const seen = new Set();
+  return parts.map(pt => { let b = cleanName(pt.name), n = b, j = 2; while (seen.has(n.toLowerCase())) n = `${b}_${j++}`; seen.add(n.toLowerCase()); return n + ".pdf"; });
+}
+$("#sFolder").onclick = async () => {
+  let dir;
+  try { dir = await window.showDirectoryPicker({ mode: "readwrite", id: "pdftool-split" }); }
+  catch (e) { if (e.name !== "AbortError") toast("Impossibile accedere alla cartella: " + e.message, true); return; }
+  const names = uniqueNames();
+  // controlla file già esistenti
+  const clash = [];
+  for (const n of names) { try { await dir.getFileHandle(n); clash.push(n); } catch { } }
+  if (clash.length && !confirm(`${clash.length} file con lo stesso nome esistono già nella cartella (es. "${clash[0]}").\nVuoi sovrascriverli?`)) return;
+  try {
+    for (let i = 0; i < parts.length; i++) {
+      busy(`Salvataggio ${i + 1} di ${parts.length}…`); await nextFrame();
+      const bytes = await buildPdf(S.pages.slice(parts[i].from, parts[i].to + 1), names[i].replace(/\.pdf$/, ""));
+      const fh = await dir.getFileHandle(names[i], { create: true });
+      const w = await fh.createWritable(); await w.write(bytes); await w.close();
+    }
+    toast(`${parts.length} file salvati nella cartella "${dir.name}".`);
+    closeModals();
+  } catch (e) { console.error(e); toast("Errore durante il salvataggio: " + (e.message || e), true); }
+  finally { idle(); }
+};
+$("#sDownloadAll").onclick = async () => {
+  const names = uniqueNames();
+  try {
+    for (let i = 0; i < parts.length; i++) {
+      busy(`Creazione ${i + 1} di ${parts.length}…`); await nextFrame();
+      download(await buildPdf(S.pages.slice(parts[i].from, parts[i].to + 1), names[i].replace(/\.pdf$/, "")), names[i]);
+      await new Promise(r => setTimeout(r, 250));
+    }
+    toast(`${parts.length} file scaricati. Se il browser chiede il permesso per i download multipli, consentilo.`);
+    closeModals();
+  } catch (e) { console.error(e); toast("Errore: " + (e.message || e), true); }
+  finally { idle(); }
+};
+
+/* ---------------- anteprima ---------------- */
+let pvId = null, pvTask = null;
+async function openPreview(id) {
+  pvId = id;
+  $("#pvModal").classList.add("on");
+  await drawPreview();
+}
+async function drawPreview() {
+  const i = S.pages.findIndex(p => p.id === pvId);
+  if (i < 0) { closeModals(); return; }
+  const p = S.pages[i], d = S.docs.get(p.docId);
+  $("#pvTitle").textContent = `Pagina ${i + 1} di ${S.pages.length}`;
+  $("#pvPrev").disabled = i === 0; $("#pvNext").disabled = i === S.pages.length - 1;
+  const stage = $("#pvStage");
+  try {
+    pvTask?.cancel();
+    const page = await d.pjs.getPage(p.index + 1);
+    const rotation = (page.rotate + p.rot) % 360;
+    const vp1 = page.getViewport({ scale: 1, rotation });
+    const sw = stage.clientWidth - 32, sh = stage.clientHeight - 32;
+    const scale = Math.max(0.1, Math.min(sw / vp1.width, sh / vp1.height));
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const vp = page.getViewport({ scale: scale * dpr, rotation });
+    const c = document.createElement("canvas");
+    c.width = Math.ceil(vp.width); c.height = Math.ceil(vp.height);
+    c.style.width = Math.round(vp.width / dpr) + "px"; c.style.height = Math.round(vp.height / dpr) + "px";
+    pvTask = page.render({ canvasContext: c.getContext("2d"), viewport: vp });
+    await pvTask.promise;
+    if (pvId === p.id) stage.replaceChildren(c);
+  } catch (e) { if (e?.name !== "RenderingCancelledException") console.warn(e); }
+}
+function pvMove(d) {
+  const i = S.pages.findIndex(p => p.id === pvId) + d;
+  if (i >= 0 && i < S.pages.length) { pvId = S.pages[i].id; drawPreview(); }
+}
+$("#pvPrev").onclick = () => pvMove(-1);
+$("#pvNext").onclick = () => pvMove(1);
+$("#pvRotL").onclick = () => { rotate([pvId], -90); drawPreview(); };
+$("#pvRotR").onclick = () => { rotate([pvId], 90); drawPreview(); };
+$("#pvDel").onclick = () => {
+  const i = S.pages.findIndex(p => p.id === pvId);
+  const nxt = S.pages[i + 1] || S.pages[i - 1];
+  remove([pvId]);
+  if (nxt) { pvId = nxt.id; drawPreview(); } else closeModals();
+};
+
+/* ---------------- modali, tastiera, varie ---------------- */
+function closeModals() { document.querySelectorAll(".modal-bg.on").forEach(m => m.classList.remove("on")); pvId = null; }
+document.querySelectorAll("[data-close]").forEach(b => b.onclick = closeModals);
+document.querySelectorAll(".modal-bg").forEach(m => m.addEventListener("mousedown", e => { if (e.target === m) closeModals(); }));
+
+$("#bSelAll").onclick = () => { const all = S.pages.every(p => p.sel); S.pages.forEach(p => p.sel = !all); updateSel(); };
+$("#bRotL").onclick = () => rotate(selIds(), -90);
+$("#bRotR").onclick = () => rotate(selIds(), 90);
+$("#bDel").onclick = () => remove(selIds());
+$("#bUndo").onclick = undo;
+$("#bClear").onclick = () => {
+  if (S.dirty && !confirm("Chiudere tutti i file? Le modifiche non salvate andranno perse.")) return;
+  S.docs.forEach(d => d.pjs.destroy()); S.docs.clear(); S.pages = []; S.undo = []; S.dirty = false;
+  $("#bUndo").disabled = true; $("#outName").value = ""; render();
+};
+$("#outName").addEventListener("keydown", e => { if (e.key === "Enter") $("#bSave").click(); });
+
+document.addEventListener("keydown", e => {
+  const typing = /^(INPUT|TEXTAREA)$/.test(e.target.tagName);
+  const mod = e.ctrlKey || e.metaKey;
+  const pvOpen = $("#pvModal").classList.contains("on");
+  const anyModal = document.querySelector(".modal-bg.on");
+  if (e.key === "Escape") { if (anyModal) closeModals(); else { S.pages.forEach(p => p.sel = false); updateSel(); } return; }
+  if (mod && e.key.toLowerCase() === "s") { e.preventDefault(); if (!anyModal) $("#bSave").click(); return; }
+  if (typing) return;
+  if (pvOpen) {
+    if (e.key === "ArrowLeft") pvMove(-1);
+    else if (e.key === "ArrowRight") pvMove(1);
+    else if (e.key.toLowerCase() === "r") $(e.shiftKey ? "#pvRotL" : "#pvRotR").click();
+    else if (e.key === "Delete" || e.key === "Backspace") $("#pvDel").click();
+    return;
+  }
+  if (anyModal) return;
+  if (mod && e.key.toLowerCase() === "z") { e.preventDefault(); undo(); }
+  else if (mod && e.key.toLowerCase() === "a") { e.preventDefault(); S.pages.forEach(p => p.sel = true); updateSel(); }
+  else if (mod && e.key.toLowerCase() === "o") { e.preventDefault(); $("#file").click(); }
+  else if (e.key === "Delete" || e.key === "Backspace") { e.preventDefault(); remove(selIds()); }
+  else if (e.key.toLowerCase() === "r" && !mod) rotate(selIds(), e.shiftKey ? -90 : 90);
+});
+window.addEventListener("beforeunload", e => { if (S.dirty && S.pages.length) { e.preventDefault(); e.returnValue = ""; } });
+window.addEventListener("resize", () => { if (pvId != null) drawPreview(); });
+
+render();
+</script>
+</body>
+</html>
