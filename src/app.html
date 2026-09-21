@@ -571,11 +571,30 @@ $("#dropCard").onclick = () => $("#file").click();
 $("#dropCard").onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("#file").click(); } };
 
 /* ---------------- generazione PDF ---------------- */
+/* Molti PDF (bollette, estratti conto, documenti firmati…) sono cifrati anche senza password di
+   apertura: pdf-lib non sa decifrarli. In quel caso pdf.js, che li legge correttamente, ne produce una
+   copia decifrata (resta tutto in locale). Unire il documento a un PDF vuoto evita che pdf.js
+   riapplichi la cifratura; la pagina vuota finale non viene mai copiata. */
+let blankPdf = null;
+async function normalizedLib(doc) {
+  if (!blankPdf) { const b = await PDFDocument.create(); b.addPage([10, 10]); blankPdf = await b.save(); }
+  const bytes = await doc.pjs.extractPages([{ document: null }, { document: blankPdf.slice() }]);
+  if (!bytes) throw new Error("conversione non riuscita");
+  const L = await PDFDocument.load(bytes, { updateMetadata: false });
+  if (L.getPageCount() !== doc.pjs.numPages + 1) throw new Error("numero di pagine inatteso dopo la conversione");
+  doc.normalized = true;
+  return L;
+}
 async function libDoc(doc) {
-  if (!doc.libDoc) doc.libDoc = await PDFDocument.load(doc.bytes, { ignoreEncryption: true, updateMetadata: false });
+  if (!doc.libDoc) {
+    let L = null;
+    try { L = await PDFDocument.load(doc.bytes, { ignoreEncryption: true, updateMetadata: false }); } catch (e) { console.warn("pdf-lib:", e); }
+    if (!L || L.isEncrypted || L.getPageCount() !== doc.pjs.numPages) L = await normalizedLib(doc);
+    doc.libDoc = L;
+  }
   return doc.libDoc;
 }
-async function buildPdf(pages, title) {
+async function buildPdfOnce(pages, title) {
   const out = await PDFDocument.create();
   const byDoc = new Map();
   for (const p of pages) { if (!byDoc.has(p.docId)) byDoc.set(p.docId, []); byDoc.get(p.docId).push(p.index); }
@@ -595,6 +614,17 @@ async function buildPdf(pages, title) {
   out.setProducer("PDF Tool");
   out.setCreator("PDF Tool");
   return out.save();
+}
+async function buildPdf(pages, title) {
+  try { return await buildPdfOnce(pages, title); }
+  catch (e) {
+    // pdf-lib non è riuscito a leggere un file: riprova passando dalla copia generata da pdf.js
+    const docs = [...new Set(pages.map(p => p.docId))].map(id => S.docs.get(id)).filter(d => !d.normalized);
+    if (!docs.length) throw e;
+    console.warn("pdf-lib ha fallito, uso la copia normalizzata:", e);
+    for (const d of docs) d.libDoc = await normalizedLib(d);
+    return await buildPdfOnce(pages, title);
+  }
 }
 
 function download(bytes, name) {

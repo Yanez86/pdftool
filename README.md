@@ -51,6 +51,8 @@ Il salvataggio usa **pdf-lib**, che copia le pagine così come sono. Testo, imma
 qualità restano invariati e il testo resta selezionabile: non c'è nessuna conversione in immagine.
 La rotazione modifica solo l'attributo `/Rotate` della pagina. Le miniature le disegna **pdf.js**.
 
+I PDF cifrati senza password di apertura (bollette, estratti conto, documenti firmati) vengono decifrati in locale tramite pdf.js prima del salvataggio.
+
 **Limiti:** i PDF protetti da password di apertura non si possono aprire. Moduli compilabili
 e segnalibri (indice laterale) potrebbero non essere mantenuti dopo unione o divisione.
 
