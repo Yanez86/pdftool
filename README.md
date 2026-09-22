@@ -12,13 +12,14 @@ Non installa nulla, non ha bisogno di internet e **nessun dato lascia il tuo com
 - **Divide** un PDF: una pagina per file, ogni N pagine, per intervalli (`1-3, 4-7, 8-`) o per file di origine
 - **Estrae** le pagine selezionate in un nuovo PDF
 - **Rinomina** i file prima di salvarli, anche ogni singola parte quando dividi
+- **Foto come pagine**: aggiungi immagini JPG o PNG, ognuna diventa una pagina A4 ruotabile
 - Anteprima ingrandita, annulla (Ctrl+Z), tema chiaro e scuro automatico
 
 ## Come si usa
 
 1. Scarica `index.html` (puoi rinominarlo come vuoi, ad es. `PDF Tool.html`)
 2. Aprilo con un doppio clic: si apre nel browser
-3. Trascina i PDF nella finestra
+3. Trascina nella finestra i PDF o le foto
 
 Funziona con Chrome, Edge, Firefox e Safari recenti. Con **Chrome ed Edge** si apre la
 finestra "Salva con nome" e, quando dividi, puoi salvare tutte le parti direttamente in una cartella.
@@ -67,6 +68,11 @@ python3 build.py     # rigenera index.html (~2,7 MB)
 
 Per pubblicarlo online con **GitHub Pages**: *Settings → Pages → Deploy from branch → main / root*.
 Anche da lì tutto resta elaborato in locale nel browser di chi lo usa.
+
+## Novità
+
+L'elenco delle modifiche è in [`CHANGELOG.md`](CHANGELOG.md) e nel programma, dal pulsante con il numero di versione in basso a destra.
+Quando esce una nuova versione, la voce va aggiunta sia in `CHANGELOG.md` sia nella lista `CHANGELOG` all'inizio del codice in `src/app.html`.
 
 ## Licenza
 

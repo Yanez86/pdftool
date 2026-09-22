@@ -63,7 +63,7 @@ header{display:flex;align-items:center;gap:12px;padding:12px 20px;background:var
 
 /* ---------- grid ---------- */
 main{flex:1;overflow:auto;position:relative}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(172px,1fr));gap:18px;padding:22px 20px 60px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(172px,1fr));gap:18px;padding:22px 20px 28px}
 .card{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px 10px 8px;box-shadow:var(--shadow);cursor:pointer;user-select:none;transition:border-color .12s,box-shadow .12s,transform .12s,opacity .12s}
 .card:hover{border-color:var(--border-strong)}
 .card.sel{border-color:var(--sel);box-shadow:0 0 0 3px var(--sel-soft),var(--shadow)}
@@ -100,9 +100,26 @@ main{flex:1;overflow:auto;position:relative}
 .drop p{margin:0;color:var(--muted)}
 .feats{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin-top:22px}
 .feats span{font-size:12px;border:1px solid var(--border);border-radius:999px;padding:3px 10px;color:var(--muted)}
-.hint{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);font-size:12px;color:var(--muted);background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:5px 14px;box-shadow:var(--shadow);white-space:nowrap;z-index:5}
+.appfoot{display:flex;align-items:center;gap:14px;padding:7px 20px;border-top:1px solid var(--border);background:var(--surface);font-size:12px;color:var(--muted);flex:none}
+.appfoot .by b{color:var(--text);font-weight:650}
+.appfoot .by .heart{color:var(--accent)}
+.hint{flex:1;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.linkbtn{border:0;background:transparent;color:var(--muted);cursor:pointer;padding:3px 8px;border-radius:6px;font-size:12px;white-space:nowrap;margin-left:auto}
+.linkbtn:hover{background:var(--surface-2);color:var(--text)}
+.linkbtn .new{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--accent);margin-left:5px;vertical-align:middle}
+.cl-ver{margin:0 0 18px}
+.cl-ver:last-child{margin-bottom:0}
+.cl-ver h4{margin:0 0 6px;font-size:14px;display:flex;align-items:baseline;gap:8px}
+.cl-ver h4 span{font-weight:500;color:var(--muted);font-size:12px}
+.cl-ver ul{margin:0;padding-left:0;list-style:none;display:grid;gap:5px}
+.cl-ver li{display:flex;gap:8px;align-items:baseline}
+.tag{font-size:10.5px;font-weight:650;border-radius:5px;padding:1px 6px;flex:none;text-transform:uppercase;letter-spacing:.03em}
+.tag.new{background:rgba(22,163,74,.12);color:#15803d}
+.tag.fix{background:rgba(234,88,12,.12);color:#c2410c}
+.tag.imp{background:var(--sel-soft);color:var(--sel)}
+@media (prefers-color-scheme:dark){.tag.new{color:#4ade80}.tag.fix{color:#fb923c}}
 .hint kbd{font:11px ui-monospace,monospace;border:1px solid var(--border-strong);border-bottom-width:2px;border-radius:4px;padding:0 4px;background:var(--surface-2)}
-@media (max-width:760px){.hint{display:none}}
+@media (max-width:760px){.hint{visibility:hidden}}
 
 /* ---------- overlays ---------- */
 .dropzone{position:fixed;inset:0;background:rgba(229,72,77,.1);border:3px dashed var(--accent);z-index:50;display:none;place-items:center;pointer-events:none}
@@ -142,7 +159,7 @@ main{flex:1;overflow:auto;position:relative}
 .busy div{background:var(--surface);border-radius:14px;padding:18px 24px;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow-lg);font-weight:550}
 .spin{width:20px;height:20px;border-radius:50%;border:3px solid var(--border-strong);border-top-color:var(--accent);animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-.toasts{position:fixed;bottom:18px;right:18px;display:grid;gap:8px;z-index:90}
+.toasts{position:fixed;bottom:48px;right:18px;display:grid;gap:8px;z-index:90}
 .toast{background:var(--text);color:var(--bg);padding:10px 16px;border-radius:10px;box-shadow:var(--shadow-lg);font-size:13.5px;max-width:380px;animation:tin .18s ease-out}
 .toast.bad{background:var(--accent);color:#fff}
 @keyframes tin{from{transform:translateY(8px);opacity:0}}
@@ -163,7 +180,7 @@ main{flex:1;overflow:auto;position:relative}
   <div class="brand"><div class="logo"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M7 7h10M7 12h10M7 17h6"/></svg></div>PDF Tool</div>
   <span class="badge" title="Nessun dato lascia il tuo computer: tutto viene elaborato localmente nel browser."><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>100% offline</span>
   <div class="spacer"></div>
-  <button class="btn" id="bAdd" title="Aggiungi PDF (puoi anche trascinarli)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span class="lbl">Aggiungi PDF</span></button>
+  <button class="btn" id="bAdd" title="Aggiungi PDF o immagini JPG/PNG (puoi anche trascinarli)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span class="lbl">Aggiungi file</span></button>
   <button class="btn" id="bSplit" disabled title="Dividi in più PDF"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.1 15.9M14.5 14.5 20 20M8.1 8.1 12 12"/></svg><span class="lbl">Dividi…</span></button>
   <div class="namebox" title="Nome del file da salvare"><input id="outName" placeholder="nome-file" spellcheck="false" autocomplete="off"><span>.pdf</span></div>
   <button class="btn primary" id="bSave" disabled title="Salva PDF (Ctrl+S)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg><span class="lbl">Salva PDF</span></button>
@@ -187,16 +204,20 @@ main{flex:1;overflow:auto;position:relative}
   <div class="empty" id="empty">
     <div class="drop" id="dropCard" role="button" tabindex="0">
       <div class="big"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M12 11v6M9 14l3-3 3 3"/></svg></div>
-      <h2>Trascina qui i tuoi PDF</h2>
-      <p>oppure clicca per sceglierli dal computer</p>
-      <div class="feats"><span>Elimina pagine</span><span>Ruota</span><span>Riordina</span><span>Unisci</span><span>Dividi</span><span>Rinomina</span></div>
+      <h2>Trascina qui PDF o immagini</h2>
+      <p>oppure clicca per sceglierli dal computer · PDF, JPG, PNG</p>
+      <div class="feats"><span>Elimina pagine</span><span>Ruota</span><span>Riordina</span><span>Unisci</span><span>Dividi</span><span>Rinomina</span><span>Foto → PDF</span></div>
     </div>
   </div>
   <div class="grid" id="grid"></div>
 </main>
-<div class="hint" id="hint" hidden>Clic per selezionare · <kbd>Maiusc</kbd>+clic per un intervallo · trascina per riordinare · doppio clic per ingrandire · <kbd>Canc</kbd> elimina · <kbd>R</kbd> ruota · <kbd>Ctrl</kbd>+<kbd>Z</kbd> annulla</div>
+<footer class="appfoot">
+  <span class="by">made by <b>TheRealGibo</b></span>
+  <span class="hint" id="hint" hidden>Clic per selezionare · <kbd>Maiusc</kbd>+clic per un intervallo · trascina per riordinare · doppio clic per ingrandire · <kbd>Canc</kbd> elimina · <kbd>R</kbd> ruota · <kbd>Ctrl</kbd>+<kbd>Z</kbd> annulla</span>
+  <button class="linkbtn" id="bNews" title="Cosa c'è di nuovo">v<span id="appVer"></span> · Novità</button>
+</footer>
 
-<input type="file" id="file" accept="application/pdf,.pdf" multiple hidden>
+<input type="file" id="file" accept="application/pdf,.pdf,image/png,image/jpeg,.png,.jpg,.jpeg" multiple hidden>
 <div class="dropzone" id="dropzone"><div>Rilascia per aggiungere i PDF</div></div>
 
 <!-- split -->
@@ -239,6 +260,14 @@ main{flex:1;overflow:auto;position:relative}
   </div>
 </div>
 
+<!-- changelog -->
+<div class="modal-bg" id="clModal">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="clTitle">
+    <header><h3 id="clTitle">Novità</h3><div class="spacer"></div><button class="btn ghost icon" data-close title="Chiudi"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></header>
+    <div class="body" id="clBody"></div>
+  </div>
+</div>
+
 <div class="busy" id="busy"><div><span class="spin"></span><span id="busyText">Elaborazione…</span></div></div>
 <div class="toasts" id="toasts"></div>
 
@@ -272,6 +301,35 @@ const ICON = {
   x: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>',
 };
 
+/* ---------------- versione e novità ----------------
+   Per ogni nuova versione: aggiungere una voce IN CIMA a questa lista (e a CHANGELOG.md). */
+const CHANGELOG = [
+  { v: "1.1.0", date: "2026-09-22", items: [
+    ["new", "Aggiunta di foto JPG e PNG come pagine: ognuna diventa una pagina A4 (verticale o orizzontale in base alla foto), ruotabile come le altre"],
+    ["new", "Le foto scattate col telefono vengono raddrizzate automaticamente"],
+    ["new", "Registro delle novità (questa finestra)"],
+    ["new", "Barra in fondo con la firma dell'autore"],
+  ]},
+  { v: "1.0.1", date: "2026-09-21", items: [
+    ["fix", "Risolto l'errore \"Expected instance of e\" nel salvataggio di PDF cifrati (bollette, estratti conto, documenti firmati)"],
+    ["imp", "Se un PDF non si riesce a leggere, il programma ne ricava una copia pulita e riprova"],
+  ]},
+  { v: "1.0.0", date: "2026-09-21", items: [
+    ["new", "Prima versione: elimina, ruota e riordina pagine, unisci più PDF, dividi un PDF, estrai la selezione, rinomina i file salvati"],
+    ["new", "Anteprima ingrandita, annulla (Ctrl+Z), tema chiaro e scuro, funzionamento 100% offline"],
+  ]},
+];
+const APP_VERSION = CHANGELOG[0].v;
+const TAGS = { new: "Nuovo", fix: "Correzione", imp: "Migliorato" };
+$("#appVer").textContent = APP_VERSION;
+try { if (localStorage.getItem("pdftool-seen") !== APP_VERSION) $("#bNews").insertAdjacentHTML("beforeend", '<span class="new"></span>'); } catch { }
+$("#bNews").onclick = () => {
+  $("#clBody").innerHTML = CHANGELOG.map(r => `<section class="cl-ver"><h4>Versione ${esc(r.v)} <span>${new Date(r.date + "T12:00").toLocaleDateString("it-IT", { day: "numeric", month: "long", year: "numeric" })}</span></h4><ul>${r.items.map(([t, txt]) => `<li><span class="tag ${t}">${TAGS[t]}</span><span>${esc(txt)}</span></li>`).join("")}</ul></section>`).join("");
+  $("#clModal").classList.add("on");
+  $("#bNews .new")?.remove();
+  try { localStorage.setItem("pdftool-seen", APP_VERSION); } catch { }
+};
+
 /* ---------------- stato ---------------- */
 const S = {
   docs: new Map(),   // id -> { id, name, bytes, pjs, color, libDoc }
@@ -292,7 +350,7 @@ function idle() { $("#busy").classList.remove("on"); }
 const nextFrame = () => new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));
 
 function cleanName(s) {
-  s = String(s || "").replace(/\.pdf$/i, "").replace(/[\\/:*?"<>|\u0000-\u001f]/g, "_").replace(/\s+/g, " ").trim().replace(/^\.+/, "");
+  s = String(s || "").replace(/\.(pdf|png|jpe?g)$/i, "").replace(/[\\/:*?"<>|\u0000-\u001f]/g, "_").replace(/\s+/g, " ").trim().replace(/^\.+/, "");
   return s || "documento";
 }
 const withPdf = s => cleanName(s) + ".pdf";
@@ -314,9 +372,68 @@ function undo() {
 }
 
 /* ---------------- caricamento ---------------- */
+const isPdfFile = f => /\.pdf$/i.test(f.name) || f.type === "application/pdf";
+const isImgFile = f => /\.(png|jpe?g)$/i.test(f.name) || /^image\/(png|jpeg)$/.test(f.type);
+
+/* Orientamento EXIF di un JPEG (1 = normale). Le foto del telefono spesso sono salvate "di lato"
+   con un'indicazione di rotazione che i PDF non leggono: in quel caso l'immagine viene raddrizzata. */
+function jpegOrientation(b) {
+  if (b[0] !== 0xff || b[1] !== 0xd8) return 1;
+  let o = 2;
+  while (o + 10 < b.length) {
+    if (b[o] !== 0xff) return 1;
+    const m = b[o + 1], len = (b[o + 2] << 8) | b[o + 3];
+    if (m === 0xe1 && b[o + 4] === 0x45 && b[o + 5] === 0x78 && b[o + 6] === 0x69 && b[o + 7] === 0x66) {
+      const t = o + 10, le = b[t] === 0x49;
+      const r16 = i => le ? b[i] | (b[i + 1] << 8) : (b[i] << 8) | b[i + 1];
+      const r32 = i => (le ? b[i] | (b[i + 1] << 8) | (b[i + 2] << 16) | (b[i + 3] << 24) : (b[i] << 24) | (b[i + 1] << 16) | (b[i + 2] << 8) | b[i + 3]) >>> 0;
+      const ifd = t + r32(t + 4), n = r16(ifd);
+      for (let k = 0; k < n; k++) { const e = ifd + 2 + k * 12; if (r16(e) === 0x0112) return r16(e + 8) || 1; }
+      return 1;
+    }
+    if (m === 0xda) return 1;
+    o += 2 + len;
+  }
+  return 1;
+}
+async function reencode(bytes, type, outType) {
+  const bmp = await createImageBitmap(new Blob([bytes], { type })); // applica l'orientamento EXIF
+  const c = document.createElement("canvas"); c.width = bmp.width; c.height = bmp.height;
+  const ctx = c.getContext("2d");
+  if (outType === "image/jpeg") { ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, c.width, c.height); }
+  ctx.drawImage(bmp, 0, 0); bmp.close?.();
+  const blob = await new Promise(r => c.toBlob(r, outType, 0.92));
+  return new Uint8Array(await blob.arrayBuffer());
+}
+/* Trasforma una foto in un PDF di una pagina A4 (orientata come la foto), con l'immagine centrata. */
+async function imageToPdf(file) {
+  let bytes = new Uint8Array(await file.arrayBuffer());
+  const isPng = bytes[0] === 0x89 && bytes[1] === 0x50;
+  const isJpg = bytes[0] === 0xff && bytes[1] === 0xd8;
+  if (!isPng && !isJpg) throw new Error("formato immagine non riconosciuto");
+  const out = await PDFDocument.create();
+  let img;
+  if (isJpg) {
+    if (jpegOrientation(bytes) !== 1) bytes = await reencode(bytes, "image/jpeg", "image/jpeg");
+    try { img = await out.embedJpg(bytes); } catch { img = await out.embedJpg(await reencode(bytes, "image/jpeg", "image/jpeg")); }
+  } else {
+    try { img = await out.embedPng(bytes); } catch { img = await out.embedPng(await reencode(bytes, "image/png", "image/png")); }
+  }
+  const [A, B] = [595.28, 841.89];
+  const land = img.width > img.height;
+  const W = land ? B : A, H = land ? A : B;
+  const k = Math.min(W / img.width, H / img.height);
+  const w = img.width * k, h = img.height * k;
+  const page = out.addPage([W, H]);
+  page.drawImage(img, { x: (W - w) / 2, y: (H - h) / 2, width: w, height: h });
+  out.setTitle(file.name.replace(/\.(png|jpe?g)$/i, ""));
+  out.setProducer("PDF Tool"); out.setCreator("PDF Tool");
+  return out.save();
+}
+
 async function addFiles(fileList) {
-  const files = [...fileList].filter(f => /\.pdf$/i.test(f.name) || f.type === "application/pdf");
-  if (!files.length) { toast("Nessun PDF trovato tra i file selezionati.", true); return; }
+  const files = [...fileList].filter(f => isPdfFile(f) || isImgFile(f));
+  if (!files.length) { toast("Nessun PDF o immagine JPG/PNG trovato tra i file selezionati.", true); return; }
   busy(files.length > 1 ? `Apertura di ${files.length} file…` : "Apertura del file…");
   let added = 0;
   const firstLoad = S.pages.length === 0;
@@ -324,16 +441,17 @@ async function addFiles(fileList) {
   try {
     for (const f of files) {
       try {
-        const bytes = new Uint8Array(await f.arrayBuffer());
+        const isImage = !isPdfFile(f);
+        const bytes = isImage ? await imageToPdf(f) : new Uint8Array(await f.arrayBuffer());
         const pjs = await pdfjsLib.getDocument({ ...PDFJS_OPTS, data: bytes.slice() }).promise;
         const id = S.nextDoc++;
-        const doc = { id, name: f.name, bytes, pjs, color: COLORS[(id - 1) % COLORS.length], libDoc: null };
+        const doc = { id, name: f.name, bytes, pjs, color: COLORS[(id - 1) % COLORS.length], libDoc: null, isImage };
         S.docs.set(id, doc);
         for (let i = 0; i < pjs.numPages; i++) S.pages.push({ id: S.nextPage++, docId: id, index: i, rot: 0, sel: false });
         added++;
       } catch (e) {
         console.error(e);
-        const msg = e && e.name === "PasswordException" ? `"${f.name}" è protetto da password e non può essere aperto.` : `Impossibile aprire "${f.name}": il file sembra danneggiato o non è un PDF valido.`;
+        const msg = e && e.name === "PasswordException" ? `"${f.name}" è protetto da password e non può essere aperto.` : (isImgFile(f) && !isPdfFile(f) ? `Impossibile leggere l'immagine "${f.name}": il file sembra danneggiato.` : `Impossibile aprire "${f.name}": il file sembra danneggiato o non è un PDF valido.`);
         toast(msg, true);
       }
     }
@@ -341,10 +459,10 @@ async function addFiles(fileList) {
   if (!added) return;
   S.undo.push(before); $("#bUndo").disabled = false; S.dirty = true;
   if (firstLoad && !$("#outName").value) {
-    $("#outName").value = added === 1 ? cleanName(files[0].name) : "unione";
+    $("#outName").value = added === 1 ? cleanName(files[0].name) : (files.every(isImgFile) ? "foto" : "unione");
   }
   render();
-  if (!firstLoad) toast(added === 1 ? "PDF aggiunto in coda." : `${added} PDF aggiunti in coda.`);
+  if (!firstLoad) toast(added === 1 ? "File aggiunto in coda." : `${added} file aggiunti in coda.`);
 }
 
 /* ---------------- miniature ---------------- */
@@ -420,7 +538,7 @@ function render() {
     const dot = c.querySelector(".meta .dot");
     dot.style.background = d.color; dot.style.display = multi ? "" : "none";
     const src = c.querySelector(".src");
-    src.textContent = multi ? `${d.name.replace(/\.pdf$/i, "")} · p.${p.index + 1}` : (p.index !== i ? `orig. p.${p.index + 1}` : "");
+    src.textContent = multi ? (d.isImage ? d.name : `${d.name.replace(/\.pdf$/i, "")} · p.${p.index + 1}`) : (p.index !== i ? `orig. p.${p.index + 1}` : "");
     src.title = `${d.name}, pagina ${p.index + 1}`;
     applyRot(c, p);
     if (grid.children[i] !== c) grid.insertBefore(c, grid.children[i] || null);
