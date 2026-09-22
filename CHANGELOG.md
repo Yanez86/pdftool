@@ -3,6 +3,16 @@
 Tutte le modifiche a PDF Tool, dalla più recente.
 Tipi di modifica: **Nuovo**, **Migliorato**, **Correzione**.
 
+## [1.3.0] – 2026-09-22
+
+### Nuovo
+- **Censura** di parti della pagina. Nell'anteprima ingrandita, o dal pulsante sulla miniatura, si attiva la modalità censura (tasto `C`) e si trascina per disegnare rettangoli neri. Si possono spostare, ridimensionare ed eliminare, e Ctrl+Z annulla.
+- **Censura sicura**: al salvataggio ogni pagina censurata viene trasformata in immagine a 200 dpi con i rettangoli neri già dipinti. Sotto il nero non resta nulla: né testo, né OCR, né immagini.
+
+### Migliorato
+- Avvisi chiari prima di salvare: le pagine censurate **perdono testo selezionabile, ricerca e OCR**, e i dati coperti **non sono recuperabili**.
+- I file che contengono censure ricevono il suffisso `_censurato`. Se il nome scelto coincide con quello di un file aperto, c'è un avviso che si rischia di sostituire l'originale.
+
 ## [1.2.0] – 2026-09-22
 
 ### Nuovo

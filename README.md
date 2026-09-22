@@ -14,6 +14,7 @@ Non installa nulla, non ha bisogno di internet e **nessun dato lascia il tuo com
 - **Rinomina** i file prima di salvarli, anche ogni singola parte quando dividi
 - **Foto come pagine**: aggiungi immagini JPG o PNG, ognuna diventa una pagina A4 ruotabile
 - **PDF con password**: apre i PDF protetti chiedendo la password e può proteggere con password i PDF salvati (AES a 256 bit)
+- **Censura**: copri con rettangoli neri le parti da nascondere, in modo sicuro (vedi sotto)
 - **File firmati .p7m**: estrae il PDF dalla busta firmata e mostra firmatario e data (senza verificare la validità della firma)
 - Anteprima ingrandita, annulla (Ctrl+Z), tema chiaro e scuro automatico
 
@@ -62,6 +63,13 @@ Protegge solo l'apertura, senza limiti su stampa o copia. Se dimentichi la passw
 **File .p7m:** il programma legge il nome del firmatario e la data dichiarata, ma **non verifica** la validità
 legale della firma, perché servirebbe una connessione. Per quella usa un verificatore ufficiale.
 Il PDF estratto e salvato è una copia **senza firma digitale**.
+
+**Censura:** ogni pagina con almeno un rettangolo nero viene salvata come immagine a 200 dpi, con il nero già dipinto sopra.
+Così il contenuto coperto viene eliminato davvero, non solo nascosto. In cambio, **su quelle pagine si perdono testo selezionabile,
+ricerca e OCR**, oltre a link e commenti. Le altre pagine restano intatte. Conserva sempre l'originale: una volta sovrascritto,
+i dati censurati non si possono recuperare.
+
+**OCR:** il testo OCR delle pagine non censurate viene mantenuto. Le foto aggiunte come pagine non hanno OCR.
 
 **Limiti:** moduli compilabili e segnalibri (indice laterale) potrebbero non essere mantenuti dopo unione o divisione.
 

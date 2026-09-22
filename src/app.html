@@ -72,7 +72,11 @@ main{flex:1;overflow:auto;position:relative}
 .card.drop-before::before{left:-11px}
 .card.drop-after::after{right:-11px}
 .thumb{aspect-ratio:1/1;display:grid;place-items:center;background:var(--surface-2);border-radius:8px;overflow:hidden}
-.thumb canvas{box-shadow:0 1px 3px rgba(0,0,0,.18);background:#fff;transition:transform .2s ease}
+.thumb canvas{background:#fff;display:block;width:100%;height:auto}
+.thumb .pgw{position:relative;box-shadow:0 1px 3px rgba(0,0,0,.18);transition:transform .2s ease;line-height:0}
+.rdl{position:absolute;inset:0;pointer-events:none}
+.rdl i{position:absolute;background:#000}
+.redbadge{position:absolute;bottom:44px;left:16px;font-size:11px;font-weight:650;background:#111;color:#fff;border-radius:6px;padding:1px 7px;display:flex;align-items:center;gap:4px}
 .thumb .ph{width:60%;aspect-ratio:1/1.3;background:var(--border);border-radius:3px;animation:pulse 1.2s ease-in-out infinite}
 @keyframes pulse{50%{opacity:.5}}
 .meta{display:flex;align-items:center;gap:6px;margin-top:8px;font-size:12.5px}
@@ -171,7 +175,22 @@ main{flex:1;overflow:auto;position:relative}
 
 .preview .modal{width:min(1000px,100%);height:calc(100vh - 40px)}
 .pv-stage{flex:1;display:grid;place-items:center;overflow:auto;background:var(--surface-2);padding:16px}
-.pv-stage canvas{box-shadow:0 2px 12px rgba(0,0,0,.25);background:#fff}
+.pv-stage canvas{background:#fff;display:block}
+.pvwrap{position:relative;box-shadow:0 2px 12px rgba(0,0,0,.25);line-height:0;touch-action:none}
+.pvlayer{position:absolute;inset:0}
+.pvlayer.edit{cursor:crosshair}
+.rd{position:absolute;background:#000}
+.pvlayer.edit .rd{cursor:move;outline:1px dashed rgba(255,255,255,.55);outline-offset:-3px}
+.pvlayer.edit .rd.sel{outline:2px solid var(--accent);outline-offset:1px}
+.rd .h,.rd .x{position:absolute;display:none}
+.pvlayer.edit .rd.sel .h,.pvlayer.edit .rd.sel .x{display:grid}
+.rd .h{right:-7px;bottom:-7px;width:14px;height:14px;background:#fff;border:2px solid var(--accent);border-radius:4px;cursor:nwse-resize}
+.rd .x{top:-11px;right:-11px;width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;place-items:center;cursor:pointer;border:2px solid #fff}
+.pvwarn{padding:10px 20px;background:rgba(234,179,8,.12);border-bottom:1px solid rgba(234,179,8,.35);font-size:13px;display:flex;gap:12px;align-items:flex-start}
+.pvwarn .t{flex:1}
+.pvwarn button{flex:none}
+.bul{margin:0 0 12px;padding-left:18px;display:grid;gap:4px}
+.warnbox.danger{background:var(--accent-soft);border-color:var(--accent)}
 
 .busy{position:fixed;inset:0;z-index:80;display:none;place-items:center;background:rgba(10,10,10,.35)}
 .busy.on{display:grid}
@@ -233,7 +252,7 @@ main{flex:1;overflow:auto;position:relative}
 </main>
 <footer class="appfoot">
   <span class="by">made by <b>TheRealGibo</b></span>
-  <span class="hint" id="hint" hidden>Clic per selezionare · <kbd>Maiusc</kbd>+clic per un intervallo · trascina per riordinare · doppio clic per ingrandire · <kbd>Canc</kbd> elimina · <kbd>R</kbd> ruota · <kbd>Ctrl</kbd>+<kbd>Z</kbd> annulla</span>
+  <span class="hint" id="hint" hidden>Clic per selezionare · <kbd>Maiusc</kbd>+clic per un intervallo · trascina per riordinare · doppio clic per ingrandire · <kbd>Canc</kbd> elimina · <kbd>R</kbd> ruota · <kbd>Ctrl</kbd>+<kbd>Z</kbd> annulla · censura dall'anteprima</span>
   <button class="linkbtn" id="bNews" title="Cosa c'è di nuovo">v<span id="appVer"></span> · Novità</button>
 </footer>
 
@@ -273,10 +292,12 @@ main{flex:1;overflow:auto;position:relative}
       <div class="sep"></div>
       <button class="btn icon" id="pvRotL" title="Ruota a sinistra"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg></button>
       <button class="btn icon" id="pvRotR" title="Ruota a destra"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg></button>
+      <button class="btn" id="pvRedact" title="Censura: copri con rettangoli neri le parti da nascondere (C)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="8" rx="1.5" fill="currentColor"/><path d="M3 4h10M3 20h14"/></svg><span class="lbl">Censura</span></button>
       <button class="btn icon danger" id="pvDel" title="Elimina pagina"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg></button>
       <div class="sep"></div>
       <button class="btn ghost icon" data-close title="Chiudi (Esc)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
     </header>
+    <div class="pvwarn" id="pvWarn" hidden><div class="t"><b>Modalità censura.</b> Trascina sulla pagina per coprire una zona. Clic su un rettangolo per spostarlo o ridimensionarlo, <kbd>Canc</kbd> per eliminarlo, <kbd>Ctrl</kbd>+<kbd>Z</kbd> per annullare.<br>Al salvataggio questa pagina diventerà un'<b>immagine</b>: <b>si perdono testo selezionabile, ricerca e OCR</b>, e ciò che è sotto i rettangoli viene <b>cancellato per sempre</b>.</div><button class="btn" id="pvRdClear" style="height:30px">Rimuovi tutte</button></div>
     <div class="pv-stage" id="pvStage"></div>
   </div>
 </div>
@@ -346,6 +367,7 @@ const ICON = {
   rotL: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>',
   rotR: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>',
   del: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>',
+  redact: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="8" rx="1.5" fill="currentColor"/><path d="M3 4h10M3 20h14"/></svg>',
   zoom: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5M11 8v6M8 11h6"/></svg>',
   check: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>',
   x: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>',
@@ -354,6 +376,12 @@ const ICON = {
 /* ---------------- versione e novità ----------------
    Per ogni nuova versione: aggiungere una voce IN CIMA a questa lista (e a CHANGELOG.md). */
 const CHANGELOG = [
+  { v: "1.3.0", date: "2026-09-22", items: [
+    ["new", "Censura: nell'anteprima (o col pulsante sulla miniatura) si disegnano rettangoli neri da spostare, ridimensionare ed eliminare; Ctrl+Z annulla"],
+    ["new", "Censura sicura: al salvataggio la pagina censurata diventa un'immagine, quindi sotto il nero non resta nulla (né testo, né OCR, né immagini)"],
+    ["imp", "Avvisi chiari prima di salvare: le pagine censurate perdono testo selezionabile e OCR, e i dati coperti non sono recuperabili"],
+    ["imp", "I file con censure ricevono il suffisso \"_censurato\" e c'è un avviso se il nome scelto coincide con quello dell'originale"],
+  ]},
   { v: "1.2.0", date: "2026-09-22", items: [
     ["new", "Apertura dei PDF protetti da password: il programma chiede la password e, se è sbagliata, permette di riprovare"],
     ["new", "Protezione con password dei PDF salvati (cifratura AES a 256 bit), dal pulsante con il lucchetto; vale anche per Estrai selezione e Dividi"],
@@ -426,6 +454,7 @@ function undo() {
   S.pages = prev;
   $("#bUndo").disabled = !S.undo.length;
   render();
+  if (pvId != null) { rdSel = null; drawPreview(); }
 }
 
 /* ---------------- caricamento ---------------- */
@@ -507,7 +536,7 @@ function dialog({ title, html, buttons, focus }) {
       box.append(btn);
     }
     $("#dlg").classList.add("on");
-    setTimeout(() => ($(focus || "#dlgBtns .primary") || box.lastChild)?.focus(), 30);
+    ($(focus || "#dlgBtns .primary") || box.lastChild)?.focus();
   });
 }
 function closeDialog() { if (dlgResolve) { const r = dlgResolve; dlgResolve = null; $("#dlg").classList.remove("on"); r(null); } }
@@ -781,16 +810,24 @@ async function drawThumb(card) {
     const vp = page.getViewport({ scale: scale * dpr });
     const c = document.createElement("canvas");
     c.width = Math.ceil(vp.width); c.height = Math.ceil(vp.height);
-    c.style.width = (vp.width / Math.max(vp.width, vp.height) * 94).toFixed(2) + "%"; c.style.height = "auto";
+    const wrap = el("div", "pgw");
+    wrap.style.width = (vp.width / Math.max(vp.width, vp.height) * 94).toFixed(2) + "%";
     await page.render({ canvasContext: c.getContext("2d"), viewport: vp }).promise;
-    const box = card.querySelector(".thumb");
-    box.replaceChildren(c);
-    applyRot(card, p);
+    wrap.append(c, el("div", "rdl"));
+    card.querySelector(".thumb").replaceChildren(wrap);
+    applyRot(card, S.pages.find(x => x.id === p.id) || p);
   } catch (e) { console.warn(e); card.querySelector(".thumb").innerHTML = '<span style="color:var(--muted);font-size:12px">Anteprima non disponibile</span>'; }
 }
 function applyRot(card, p) {
-  const c = card.querySelector("canvas");
+  const c = card.querySelector(".pgw");
   if (c) c.style.transform = `rotate(${p.rot}deg)`;
+  // censure: rettangoli neri sulla miniatura (coordinate della pagina non ruotata dall'utente)
+  const l = card.querySelector(".rdl");
+  const rs = p.redacts || [];
+  if (l) l.innerHTML = rs.map(r => `<i style="left:${r.x * 100}%;top:${r.y * 100}%;width:${r.w * 100}%;height:${r.h * 100}%"></i>`).join("");
+  let rb = card.querySelector(".redbadge");
+  if (rs.length) { if (!rb) { rb = el("span", "redbadge", ICON.redact.replace(/15/g, "11") + "Censurata"); rb.title = "Al salvataggio questa pagina diventerà un'immagine: testo e OCR non saranno più selezionabili"; card.append(rb); } }
+  else if (rb) rb.remove();
   let b = card.querySelector(".rotbadge");
   if (p.rot) { if (!b) { b = el("span", "rotbadge"); card.append(b); } b.textContent = `${p.rot}°`; }
   else if (b) b.remove();
@@ -806,6 +843,7 @@ function makeCard(p) {
       <button data-act="rotL" title="Ruota a sinistra">${ICON.rotL}</button>
       <button data-act="rotR" title="Ruota a destra">${ICON.rotR}</button>
       <button data-act="zoom" title="Ingrandisci">${ICON.zoom}</button>
+      <button data-act="redact" title="Censura parti della pagina">${ICON.redact}</button>
       <button data-act="del" class="del" title="Elimina pagina">${ICON.del}</button>
     </div>
     <div class="meta"><span class="dot"></span><span class="num"></span><span class="src"></span></div>`;
@@ -890,6 +928,7 @@ $("#grid").addEventListener("click", e => {
     if (a === "rotR") rotate([id], 90);
     if (a === "del") remove([id]);
     if (a === "zoom") openPreview(id);
+    if (a === "redact") openPreview(id, true);
     return;
   }
   const idx = S.pages.findIndex(p => p.id === id);
@@ -1011,10 +1050,33 @@ async function libDoc(doc) {
   }
   return doc.libDoc;
 }
+/* Pagina censurata: viene "fotografata" (200 dpi), i rettangoli neri sono dipinti sull'immagine e la pagina
+   originale è sostituita dall'immagine. Così sotto il nero non resta nulla: né testo, né OCR, né immagini. */
+const REDACT_DPI = 200;
+async function addRedactedPage(out, p) {
+  const d = S.docs.get(p.docId);
+  const page = await d.pjs.getPage(p.index + 1);
+  const base = page.getViewport({ scale: 1 });
+  const scale = Math.min(REDACT_DPI / 72, 4200 / Math.max(base.width, base.height));
+  const vp = page.getViewport({ scale });
+  const c = document.createElement("canvas");
+  c.width = Math.ceil(vp.width); c.height = Math.ceil(vp.height);
+  const ctx = c.getContext("2d");
+  ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, c.width, c.height);
+  await page.render({ canvasContext: ctx, viewport: vp }).promise;
+  ctx.fillStyle = "#000";
+  for (const r of p.redacts) ctx.fillRect(Math.floor(r.x * c.width) - 1, Math.floor(r.y * c.height) - 1, Math.ceil(r.w * c.width) + 2, Math.ceil(r.h * c.height) + 2);
+  const blob = await new Promise(res => c.toBlob(res, "image/jpeg", 0.9));
+  c.width = c.height = 0;
+  const img = await out.embedJpg(new Uint8Array(await blob.arrayBuffer()));
+  const np = out.addPage([base.width, base.height]);
+  np.drawImage(img, { x: 0, y: 0, width: base.width, height: base.height });
+  if (p.rot) np.setRotation(degrees(p.rot));
+}
 async function buildPdfOnce(pages, title) {
   const out = await PDFDocument.create();
   const byDoc = new Map();
-  for (const p of pages) { if (!byDoc.has(p.docId)) byDoc.set(p.docId, []); byDoc.get(p.docId).push(p.index); }
+  for (const p of pages) { if (p.redacts?.length) continue; if (!byDoc.has(p.docId)) byDoc.set(p.docId, []); byDoc.get(p.docId).push(p.index); }
   const copied = new Map();
   for (const [docId, idx] of byDoc) {
     const src = await libDoc(S.docs.get(docId));
@@ -1023,6 +1085,7 @@ async function buildPdfOnce(pages, title) {
     uniq.forEach((ix, k) => copied.set(docId + ":" + ix, res[k]));
   }
   for (const p of pages) {
+    if (p.redacts?.length) { await addRedactedPage(out, p); continue; }
     const pg = copied.get(p.docId + ":" + p.index);
     if (p.rot) pg.setRotation(degrees((((pg.getRotation().angle + p.rot) % 360) + 360) % 360));
     out.addPage(pg);
@@ -1147,7 +1210,7 @@ $("#bLock").onclick = () => {
   $("#lpOff").hidden = !S.protect;
   $("#lpOk").textContent = S.protect ? "Aggiorna" : "Proteggi";
   $("#lockModal").classList.add("on");
-  setTimeout(() => $("#lp1").focus(), 30);
+  $("#lp1").focus();
 };
 $("#lpShow").onchange = e => { $("#lp1").type = $("#lp2").type = e.target.checked ? "text" : "password"; };
 $("#lpOk").onclick = () => {
@@ -1161,8 +1224,36 @@ $("#lpOk").onclick = () => {
 $("#lpOff").onclick = () => { setProtect(null); $("#lockModal").classList.remove("on"); toast("Protezione rimossa: i PDF verranno salvati senza password."); };
 for (const id of ["#lp1", "#lp2"]) $(id).addEventListener("keydown", e => { if (e.key === "Enter") $("#lpOk").click(); });
 
+/* Avvisi prima di salvare pagine censurate */
+const countRedacted = pages => pages.filter(p => p.redacts?.length).length;
+async function confirmRedactions(pages) {
+  const n = countRedacted(pages);
+  if (!n) return true;
+  const one = n === 1;
+  return !!(await dialog({ title: "Conferma censura", buttons: [{ label: "Annulla", value: false }, { label: "Salva con censure", primary: true, value: true }], html:
+    `<p>Stai salvando <b>${n} ${one ? "pagina censurata" : "pagine censurate"}</b>.</p>
+     <div class="warnbox danger"><b>Ciò che è sotto i rettangoli neri viene cancellato per sempre</b> dal file salvato: non esiste modo di recuperarlo.</div>
+     <ul class="bul">
+       <li>${one ? "La pagina censurata diventa" : "Le pagine censurate diventano"} un'<b>immagine</b>, come una scansione: <b>si perdono testo selezionabile, ricerca e OCR</b>, anche nelle zone non coperte.</li>
+       <li>Link e commenti su ${one ? "quella pagina" : "quelle pagine"} vengono rimossi.</li>
+       <li>Le altre pagine restano identiche all'originale.</li>
+     </ul>
+     <div class="warnbox"><b>Non sovrascrivere il PDF originale.</b> Salva con un nome nuovo e conserva l'originale: se lo sostituisci, i dati censurati non si potranno più recuperare.</div>` }));
+}
+async function confirmNotOriginal(fileName) {
+  const same = [...S.docs.values()].some(d => d.name.toLowerCase() === String(fileName).toLowerCase());
+  if (!same) return true;
+  return !!(await dialog({ title: "Stai per sostituire l'originale?", buttons: [{ label: "Annulla", value: false }, { label: "Sostituisci comunque", primary: true, value: true }], html:
+    `<p>Hai scelto il nome <b>${esc(fileName)}</b>, uguale a quello di un file aperto.</p>
+     <div class="warnbox danger">Se è lo stesso file, l'originale verrà <b>sostituito dalla versione censurata</b> e i dati coperti andranno <b>persi per sempre</b>.</div>
+     <p class="muted">Consiglio: annulla e salva con un nome diverso.</p>` }));
+}
+
 /* Salva un file: con "Salva con nome" nativo se il browser lo supporta (Chrome/Edge), altrimenti download. */
 async function saveOne(pages, name) {
+  const red = countRedacted(pages) > 0;
+  if (red && !(await confirmRedactions(pages))) return false;
+  if (red && !/censurat/i.test(name)) name = cleanName(name) + "_censurato";
   name = withPdf(name);
   let handle = null;
   if (window.showSaveFilePicker) {
@@ -1172,6 +1263,7 @@ async function saveOne(pages, name) {
       if (e.name === "AbortError") return false;
       handle = null; // non supportato in questo contesto: si usa il download
     }
+    if (handle && red && !(await confirmNotOriginal(handle.name))) return false;
   }
   busy("Creazione del PDF…"); await nextFrame();
   try {
@@ -1225,6 +1317,7 @@ function computeParts() {
     if (mode === "src") name = cleanName(S.docs.get(S.pages[a].docId).name);
     else if (mode === "each") name = `${base}_pag${String(a + 1).padStart(String(n).length, "0")}`;
     else name = `${base}_parte${String(k + 1).padStart(pad, "0")}`;
+    if (countRedacted(S.pages.slice(a, b + 1))) name += "_censurato";
     let nm = name, j = 2; while (seen.has(nm.toLowerCase())) nm = `${name}_${j++}`; seen.add(nm.toLowerCase());
     return { from: a, to: b, name: nm };
   });
@@ -1266,7 +1359,9 @@ function uniqueNames() {
   const seen = new Set();
   return parts.map(pt => { let b = cleanName(pt.name), n = b, j = 2; while (seen.has(n.toLowerCase())) n = `${b}_${j++}`; seen.add(n.toLowerCase()); return n + ".pdf"; });
 }
+const partPages = () => parts.flatMap(pt => S.pages.slice(pt.from, pt.to + 1));
 $("#sFolder").onclick = async () => {
+  if (!(await confirmRedactions(partPages()))) return;
   let dir;
   try { dir = await window.showDirectoryPicker({ mode: "readwrite", id: "pdftool-split" }); }
   catch (e) { if (e.name !== "AbortError") toast("Impossibile accedere alla cartella: " + e.message, true); return; }
@@ -1274,7 +1369,13 @@ $("#sFolder").onclick = async () => {
   // controlla file già esistenti
   const clash = [];
   for (const n of names) { try { await dir.getFileHandle(n); clash.push(n); } catch { } }
-  if (clash.length && !confirm(`${clash.length} file con lo stesso nome esistono già nella cartella (es. "${clash[0]}").\nVuoi sovrascriverli?`)) return;
+  if (clash.length) {
+    const red = countRedacted(partPages()) > 0;
+    const ok = await dialog({ title: "File già presenti", buttons: [{ label: "Annulla", value: false }, { label: "Sovrascrivi", primary: true, value: true }], html:
+      `<p>${clash.length === 1 ? "Un file con lo stesso nome esiste" : `${clash.length} file con lo stesso nome esistono`} già nella cartella (es. <b>${esc(clash[0])}</b>).</p>` +
+      (red ? `<div class="warnbox danger">Se tra questi c'è il PDF originale, verrà sostituito dalla versione censurata e i dati coperti andranno <b>persi per sempre</b>.</div>` : "<p>Vuoi sovrascriverli?</p>") });
+    if (!ok) return;
+  }
   try {
     for (let i = 0; i < parts.length; i++) {
       busy(`Salvataggio ${i + 1} di ${parts.length}…`); await nextFrame();
@@ -1288,6 +1389,7 @@ $("#sFolder").onclick = async () => {
   finally { idle(); }
 };
 $("#sDownloadAll").onclick = async () => {
+  if (!(await confirmRedactions(partPages()))) return;
   const names = uniqueNames();
   try {
     for (let i = 0; i < parts.length; i++) {
@@ -1301,13 +1403,36 @@ $("#sDownloadAll").onclick = async () => {
   finally { idle(); }
 };
 
-/* ---------------- anteprima ---------------- */
-let pvId = null, pvTask = null;
-async function openPreview(id) {
-  pvId = id;
+/* ---------------- anteprima e censura ---------------- */
+let pvId = null, pvTask = null, redactMode = false, rdSel = null, rdWork = null;
+const curPage = () => S.pages.find(p => p.id === pvId);
+// Coordinate normalizzate 0..1. "base" = pagina senza la rotazione dell'utente; "display" = come mostrata.
+function rotPt(r, u, v) { return r === 90 ? [1 - v, u] : r === 180 ? [1 - u, 1 - v] : r === 270 ? [v, 1 - u] : [u, v]; }
+function rotRect(r, q) {
+  const [a, b] = rotPt(r, q.x, q.y), [c, d] = rotPt(r, q.x + q.w, q.y + q.h);
+  return { x: Math.min(a, c), y: Math.min(b, d), w: Math.abs(c - a), h: Math.abs(d - b) };
+}
+const toDisp = (p, q) => rotRect(p.rot, q);
+const toBase = (p, q) => rotRect((360 - p.rot) % 360, q);
+
+async function openPreview(id, redact = false) {
+  pvId = id; rdSel = null; rdWork = null;
+  setRedactMode(redact);
   $("#pvModal").classList.add("on");
   await drawPreview();
 }
+function setRedactMode(on) {
+  redactMode = on; rdSel = null;
+  $("#pvRedact").classList.toggle("locked", on);
+  $("#pvWarn").hidden = !on;
+  const l = $("#pvStage .pvlayer"); if (l) { l.classList.toggle("edit", on); drawLayer(); }
+}
+$("#pvRedact").onclick = () => setRedactMode(!redactMode);
+$("#pvRdClear").onclick = () => {
+  const p = curPage(); if (!p?.redacts?.length) return;
+  snapshot(); p.redacts = []; rdSel = null; afterRedactChange(p);
+};
+
 async function drawPreview() {
   const i = S.pages.findIndex(p => p.id === pvId);
   if (i < 0) { closeModals(); return; }
@@ -1329,12 +1454,78 @@ async function drawPreview() {
     c.style.width = Math.round(vp.width / dpr) + "px"; c.style.height = Math.round(vp.height / dpr) + "px";
     pvTask = page.render({ canvasContext: c.getContext("2d"), viewport: vp });
     await pvTask.promise;
-    if (pvId === p.id) stage.replaceChildren(c);
+    if (pvId !== p.id) return;
+    const wrap = el("div", "pvwrap"), layer = el("div", "pvlayer" + (redactMode ? " edit" : ""));
+    wrap.append(c, layer);
+    stage.replaceChildren(wrap);
+    bindLayer(layer);
+    drawLayer();
   } catch (e) { if (e?.name !== "RenderingCancelledException") console.warn(e); }
+}
+function dispRects() { const p = curPage(); return rdWork || (p?.redacts || []).map(q => toDisp(p, q)); }
+function drawLayer() {
+  const layer = $("#pvStage .pvlayer"); if (!layer) return;
+  layer.innerHTML = dispRects().map((r, i) => `<div class="rd${i === rdSel ? " sel" : ""}" data-i="${i}" style="left:${r.x * 100}%;top:${r.y * 100}%;width:${r.w * 100}%;height:${r.h * 100}%"><span class="x" data-x title="Elimina">${ICON.x}</span><span class="h" data-h title="Ridimensiona"></span></div>`).join("");
+}
+function afterRedactChange(p) {
+  const card = S.cards.get(p.id); if (card) applyRot(card, p);
+  drawLayer();
+}
+function commitRects(list) {
+  const p = curPage(); if (!p) return;
+  snapshot();
+  p.redacts = list.map(q => toBase(p, q));
+  rdWork = null;
+  afterRedactChange(p);
+}
+function deleteSelected() {
+  if (rdSel == null) return false;
+  const list = dispRects().filter((_, i) => i !== rdSel);
+  rdSel = null; commitRects(list); return true;
+}
+function bindLayer(layer) {
+  let op = null;
+  const pos = e => { const b = layer.getBoundingClientRect(); return [Math.min(1, Math.max(0, (e.clientX - b.left) / b.width)), Math.min(1, Math.max(0, (e.clientY - b.top) / b.height))]; };
+  layer.addEventListener("pointerdown", e => {
+    if (!redactMode || e.button > 0) return;
+    e.preventDefault();
+    const [x, y] = pos(e);
+    const rdEl = e.target.closest(".rd");
+    const list = dispRects().map(r => ({ ...r }));
+    if (rdEl && e.target.closest("[data-x]")) { rdSel = +rdEl.dataset.i; deleteSelected(); return; }
+    if (rdEl) {
+      rdSel = +rdEl.dataset.i;
+      op = { kind: e.target.closest("[data-h]") ? "resize" : "move", x0: x, y0: y, orig: { ...list[rdSel] }, list };
+    } else {
+      rdSel = list.length; list.push({ x, y, w: 0, h: 0 });
+      op = { kind: "draw", x0: x, y0: y, list };
+    }
+    rdWork = list; layer.setPointerCapture(e.pointerId); drawLayer();
+  });
+  layer.addEventListener("pointermove", e => {
+    if (!op) return;
+    const [x, y] = pos(e), r = op.list[rdSel];
+    if (op.kind === "draw") Object.assign(r, { x: Math.min(x, op.x0), y: Math.min(y, op.y0), w: Math.abs(x - op.x0), h: Math.abs(y - op.y0) });
+    else if (op.kind === "move") {
+      r.x = Math.min(1 - op.orig.w, Math.max(0, op.orig.x + x - op.x0));
+      r.y = Math.min(1 - op.orig.h, Math.max(0, op.orig.y + y - op.y0));
+    } else { r.w = Math.max(0.005, x - op.orig.x); r.h = Math.max(0.005, y - op.orig.y); }
+    drawLayer();
+  });
+  const end = () => {
+    if (!op) return;
+    const { kind, list, orig } = op; op = null;
+    const r = list[rdSel];
+    if (kind === "draw" && (r.w < 0.006 || r.h < 0.006)) { list.splice(rdSel, 1); rdSel = null; rdWork = null; drawLayer(); return; }
+    if (kind !== "draw" && orig && r.x === orig.x && r.y === orig.y && r.w === orig.w && r.h === orig.h) { rdWork = null; drawLayer(); return; }
+    commitRects(list);
+  };
+  layer.addEventListener("pointerup", end);
+  layer.addEventListener("pointercancel", end);
 }
 function pvMove(d) {
   const i = S.pages.findIndex(p => p.id === pvId) + d;
-  if (i >= 0 && i < S.pages.length) { pvId = S.pages[i].id; drawPreview(); }
+  if (i >= 0 && i < S.pages.length) { pvId = S.pages[i].id; rdSel = null; rdWork = null; drawPreview(); }
 }
 $("#pvPrev").onclick = () => pvMove(-1);
 $("#pvNext").onclick = () => pvMove(1);
@@ -1344,7 +1535,7 @@ $("#pvDel").onclick = () => {
   const i = S.pages.findIndex(p => p.id === pvId);
   const nxt = S.pages[i + 1] || S.pages[i - 1];
   remove([pvId]);
-  if (nxt) { pvId = nxt.id; drawPreview(); } else closeModals();
+  if (nxt) { pvId = nxt.id; rdSel = null; drawPreview(); } else closeModals();
 };
 
 /* ---------------- modali, tastiera, varie ---------------- */
@@ -1373,10 +1564,15 @@ document.addEventListener("keydown", e => {
   const mod = e.ctrlKey || e.metaKey;
   const pvOpen = $("#pvModal").classList.contains("on");
   const anyModal = document.querySelector(".modal-bg.on");
+  if (e.key === "Escape" && pvOpen && !$("#dlg").classList.contains("on") && redactMode && rdSel != null) { rdSel = null; drawLayer(); return; }
   if (e.key === "Escape") { if (anyModal) closeModals(); else { S.pages.forEach(p => p.sel = false); updateSel(); } return; }
   if (mod && e.key.toLowerCase() === "s") { e.preventDefault(); if (!anyModal) $("#bSave").click(); return; }
   if (typing) return;
   if (pvOpen) {
+    if ($("#dlg").classList.contains("on")) return;
+    if (mod && e.key.toLowerCase() === "z") { e.preventDefault(); undo(); return; }
+    if (redactMode && (e.key === "Delete" || e.key === "Backspace")) { e.preventDefault(); deleteSelected(); return; }
+    if (e.key.toLowerCase() === "c" && !mod) { setRedactMode(!redactMode); return; }
     if (e.key === "ArrowLeft") pvMove(-1);
     else if (e.key === "ArrowRight") pvMove(1);
     else if (e.key.toLowerCase() === "r") $(e.shiftKey ? "#pvRotL" : "#pvRotR").click();
