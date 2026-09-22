@@ -118,6 +118,25 @@ main{flex:1;overflow:auto;position:relative}
 .tag.fix{background:rgba(234,88,12,.12);color:#c2410c}
 .tag.imp{background:var(--sel-soft);color:var(--sel)}
 @media (prefers-color-scheme:dark){.tag.new{color:#4ade80}.tag.fix{color:#fb923c}}
+.btn.locked{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.modal-bg.top{z-index:85}
+.modal.narrow{width:min(470px,100%)}
+.fl{display:grid;gap:5px;font-weight:600;font-size:13px;margin-bottom:12px}
+.fl .field{width:100%;font-weight:400;height:38px}
+.chk{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);cursor:pointer;margin-bottom:12px}
+.chk input{accent-color:var(--sel);margin:0}
+.muted{color:var(--muted)}
+.dlg-body p{margin:0 0 12px}
+.dlg-body p:last-child{margin-bottom:0}
+.warnbox{background:rgba(234,179,8,.12);border:1px solid rgba(234,179,8,.35);border-radius:10px;padding:10px 12px;font-size:13px;margin:0 0 12px}
+.warnbox:last-child{margin-bottom:0}
+.signers{display:grid;gap:6px;margin:0 0 12px}
+.signer{display:flex;gap:10px;align-items:center;border:1px solid var(--border);border-radius:10px;padding:9px 12px}
+.signer .ic{width:30px;height:30px;border-radius:8px;background:var(--sel-soft);color:var(--sel);display:grid;place-items:center;flex:none}
+.signer .who{font-weight:600}
+.signer .when{font-size:12px;color:var(--muted)}
+.chip .flag{display:grid;place-items:center;color:var(--muted);flex:none}
+.lockinfo{display:flex;gap:8px;align-items:center;margin-top:14px;font-size:13px;color:var(--accent);background:var(--accent-soft);border-radius:10px;padding:8px 12px}
 .hint kbd{font:11px ui-monospace,monospace;border:1px solid var(--border-strong);border-bottom-width:2px;border-radius:4px;padding:0 4px;background:var(--surface-2)}
 @media (max-width:760px){.hint{visibility:hidden}}
 
@@ -182,8 +201,9 @@ main{flex:1;overflow:auto;position:relative}
   <div class="spacer"></div>
   <button class="btn" id="bAdd" title="Aggiungi PDF o immagini JPG/PNG (puoi anche trascinarli)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span class="lbl">Aggiungi file</span></button>
   <button class="btn" id="bSplit" disabled title="Dividi in più PDF"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.1 15.9M14.5 14.5 20 20M8.1 8.1 12 12"/></svg><span class="lbl">Dividi…</span></button>
+  <button class="btn icon" id="bLock" disabled title="Proteggi con password i PDF salvati"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></button>
   <div class="namebox" title="Nome del file da salvare"><input id="outName" placeholder="nome-file" spellcheck="false" autocomplete="off"><span>.pdf</span></div>
-  <button class="btn primary" id="bSave" disabled title="Salva PDF (Ctrl+S)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg><span class="lbl">Salva PDF</span></button>
+  <button class="btn primary" id="bSave" disabled title="Salva PDF (Ctrl+S)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg><span class="lbl" id="saveLbl">Salva PDF</span></button>
 </header>
 
 <div class="toolbar" id="toolbar" hidden>
@@ -205,7 +225,7 @@ main{flex:1;overflow:auto;position:relative}
     <div class="drop" id="dropCard" role="button" tabindex="0">
       <div class="big"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M12 11v6M9 14l3-3 3 3"/></svg></div>
       <h2>Trascina qui PDF o immagini</h2>
-      <p>oppure clicca per sceglierli dal computer · PDF, JPG, PNG</p>
+      <p>oppure clicca per sceglierli dal computer · PDF, P7M, JPG, PNG</p>
       <div class="feats"><span>Elimina pagine</span><span>Ruota</span><span>Riordina</span><span>Unisci</span><span>Dividi</span><span>Rinomina</span><span>Foto → PDF</span></div>
     </div>
   </div>
@@ -217,7 +237,7 @@ main{flex:1;overflow:auto;position:relative}
   <button class="linkbtn" id="bNews" title="Cosa c'è di nuovo">v<span id="appVer"></span> · Novità</button>
 </footer>
 
-<input type="file" id="file" accept="application/pdf,.pdf,image/png,image/jpeg,.png,.jpg,.jpeg" multiple hidden>
+<input type="file" id="file" accept="application/pdf,.pdf,image/png,image/jpeg,.png,.jpg,.jpeg,.p7m,application/pkcs7-mime" multiple hidden>
 <div class="dropzone" id="dropzone"><div>Rilascia per aggiungere i PDF</div></div>
 
 <!-- split -->
@@ -231,6 +251,7 @@ main{flex:1;overflow:auto;position:relative}
         <label class="opt"><input type="radio" name="smode" value="ranges"><div style="flex:none"><div class="t">Intervalli</div><div class="d">Es. 1-3, 4-7, 8</div></div><input type="text" id="sRanges" placeholder="1-3, 4-7, 8-" spellcheck="false"></label>
         <label class="opt"><input type="radio" name="smode" value="src"><div><div class="t">Per file di origine</div><div class="d">Separa di nuovo le pagine in base al PDF da cui provengono</div></div></label>
       </div>
+      <div class="lockinfo" id="sLock" hidden><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Tutti i file verranno protetti con la password impostata.</div>
       <div class="err" id="sErr"></div>
       <div class="parts" id="sParts"></div>
     </div>
@@ -257,6 +278,35 @@ main{flex:1;overflow:auto;position:relative}
       <button class="btn ghost icon" data-close title="Chiudi (Esc)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
     </header>
     <div class="pv-stage" id="pvStage"></div>
+  </div>
+</div>
+
+<!-- protezione con password -->
+<div class="modal-bg" id="lockModal">
+  <div class="modal narrow" role="dialog" aria-modal="true" aria-labelledby="lockTitle">
+    <header><h3 id="lockTitle">Proteggi con password</h3><div class="spacer"></div><button class="btn ghost icon" data-close title="Chiudi"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></header>
+    <div class="body">
+      <p class="muted" style="margin:0 0 14px">I PDF salvati chiederanno questa password per essere aperti. Vale per ogni salvataggio: Salva, Estrai selezione e Dividi.</p>
+      <label class="fl">Password<input type="password" class="field" id="lp1" autocomplete="new-password"></label>
+      <label class="fl">Ripeti la password<input type="password" class="field" id="lp2" autocomplete="new-password"></label>
+      <label class="chk"><input type="checkbox" id="lpShow">Mostra password</label>
+      <div class="warnbox"><b>Attenzione:</b> se dimentichi la password il file non si potrà più aprire. Il programma non la memorizza da nessuna parte.</div>
+      <div class="err" id="lpErr"></div>
+    </div>
+    <footer>
+      <button class="btn danger" id="lpOff" style="margin-right:auto">Rimuovi protezione</button>
+      <button class="btn" data-close>Annulla</button>
+      <button class="btn primary" id="lpOk">Proteggi</button>
+    </footer>
+  </div>
+</div>
+
+<!-- finestra generica (password in apertura, avvisi) -->
+<div class="modal-bg top" id="dlg">
+  <div class="modal narrow" role="dialog" aria-modal="true" aria-labelledby="dlgTitle">
+    <header><h3 id="dlgTitle"></h3></header>
+    <div class="body dlg-body" id="dlgBody"></div>
+    <footer id="dlgBtns"></footer>
   </div>
 </div>
 
@@ -304,6 +354,13 @@ const ICON = {
 /* ---------------- versione e novità ----------------
    Per ogni nuova versione: aggiungere una voce IN CIMA a questa lista (e a CHANGELOG.md). */
 const CHANGELOG = [
+  { v: "1.2.0", date: "2026-09-22", items: [
+    ["new", "Apertura dei PDF protetti da password: il programma chiede la password e, se è sbagliata, permette di riprovare"],
+    ["new", "Protezione con password dei PDF salvati (cifratura AES a 256 bit), dal pulsante con il lucchetto; vale anche per Estrai selezione e Dividi"],
+    ["new", "Se apri un PDF protetto, i file salvati mantengono la stessa password (si può cambiare o togliere)"],
+    ["new", "Apertura dei file firmati digitalmente .p7m, anche con firme multiple: il PDF viene estratto e vengono mostrati firmatari e data (non verificati)"],
+    ["new", "Per le fatture elettroniche .xml.p7m è possibile scaricare il file XML estratto"],
+  ]},
   { v: "1.1.0", date: "2026-09-22", items: [
     ["new", "Aggiunta di foto JPG e PNG come pagine: ognuna diventa una pagina A4 (verticale o orizzontale in base alla foto), ruotabile come le altre"],
     ["new", "Le foto scattate col telefono vengono raddrizzate automaticamente"],
@@ -336,7 +393,7 @@ const S = {
   pages: [],         // [{ id, docId, index, rot, sel }]
   undo: [],
   cards: new Map(),  // page.id -> element
-  nextDoc: 1, nextPage: 1, anchor: null, dirty: false,
+  nextDoc: 1, nextPage: 1, anchor: null, dirty: false, protect: null,
 };
 
 /* ---------------- utilità UI ---------------- */
@@ -431,38 +488,279 @@ async function imageToPdf(file) {
   return out.save();
 }
 
+/* ---------------- finestre di dialogo ---------------- */
+let dlgResolve = null;
+function dialog({ title, html, buttons, focus }) {
+  return new Promise(res => {
+    if (dlgResolve) dlgResolve(null);
+    dlgResolve = res;
+    $("#dlgTitle").textContent = title;
+    $("#dlgBody").innerHTML = html;
+    const box = $("#dlgBtns"); box.replaceChildren();
+    for (const b of buttons) {
+      const btn = el("button", "btn" + (b.primary ? " primary" : ""), esc(b.label));
+      btn.onclick = () => {
+        const v = typeof b.value === "function" ? b.value() : b.value;
+        if (v === undefined) return; // valore non valido: resta aperta
+        dlgResolve = null; $("#dlg").classList.remove("on"); res(v);
+      };
+      box.append(btn);
+    }
+    $("#dlg").classList.add("on");
+    setTimeout(() => ($(focus || "#dlgBtns .primary") || box.lastChild)?.focus(), 30);
+  });
+}
+function closeDialog() { if (dlgResolve) { const r = dlgResolve; dlgResolve = null; $("#dlg").classList.remove("on"); r(null); } }
+
+async function askPassword(fileName, wrong) {
+  const html = `<p>${wrong ? '<b style="color:var(--accent)">Password errata, riprova.</b><br>' : ""}Il file <b>${esc(fileName)}</b> è protetto da password.</p>
+    <label class="fl">Password<input type="password" class="field" id="dlgPw" autocomplete="off"></label>
+    <label class="chk" style="margin:0"><input type="checkbox" id="dlgPwShow">Mostra password</label>`;
+  const p = dialog({ title: "Password richiesta", html, focus: "#dlgPw", buttons: [
+    { label: "Annulla", value: null },
+    { label: "Apri", primary: true, value: () => $("#dlgPw").value || undefined },
+  ]});
+  $("#dlgPwShow").onchange = e => { $("#dlgPw").type = e.target.checked ? "text" : "password"; };
+  $("#dlgPw").onkeydown = e => { if (e.key === "Enter") $("#dlgBtns .primary").click(); };
+  return p;
+}
+
+/* Apre un PDF con pdf.js; se serve la password la chiede (anche più volte). */
+async function openPdf(bytes, name) {
+  const task = pdfjsLib.getDocument({ ...PDFJS_OPTS, data: bytes.slice() });
+  let used = null, cancelled = false;
+  task.onPassword = async (update, reason) => {
+    const wasBusy = $("#busy").classList.contains("on"); idle();
+    const pw = await askPassword(name, reason === pdfjsLib.PasswordResponses.INCORRECT_PASSWORD);
+    if (wasBusy) busy("Apertura del file…");
+    if (pw == null) { cancelled = true; task.destroy(); return; }
+    used = pw; update(pw);
+  };
+  try { return { pjs: await task.promise, password: used }; }
+  catch (e) { if (cancelled) return { pjs: null }; throw e; }
+}
+
+/* ---------------- file firmati .p7m (CAdES) ----------------
+   Si legge la "busta" CMS/PKCS#7 e se ne estrae il documento contenuto, più nome del firmatario e data
+   dichiarata. La validità legale della firma NON viene verificata (richiederebbe una connessione). */
+const isP7mFile = f => /\.p7m$/i.test(f.name) || f.type === "application/pkcs7-mime";
+const P7M = (() => {
+  function read(b, pos, depth = 0) {
+    if (depth > 60) throw new Error("struttura troppo annidata");
+    const start = pos, t = b[pos++];
+    if (t === undefined) throw new Error("file troncato");
+    const cls = t >> 6, cons = !!(t & 0x20);
+    let num = t & 0x1f;
+    if (num === 0x1f) { num = 0; let x; do { x = b[pos++]; num = num * 128 + (x & 0x7f); } while (x & 0x80); }
+    let len = b[pos++], indef = false;
+    if (len === undefined) throw new Error("file troncato");
+    if (len === 0x80) indef = true;
+    else if (len & 0x80) { const n = len & 0x7f; if (n > 6) throw new Error("lunghezza non valida"); len = 0; for (let i = 0; i < n; i++) len = len * 256 + b[pos++]; }
+    const node = { cls, cons, num, start, cStart: pos, children: null };
+    if (cons) {
+      node.children = [];
+      if (indef) {
+        while (!(b[pos] === 0 && b[pos + 1] === 0)) { if (pos >= b.length) throw new Error("file troncato"); const c = read(b, pos, depth + 1); node.children.push(c); pos = c.end; }
+        node.cEnd = pos; node.end = pos + 2;
+      } else {
+        const end = pos + len; if (end > b.length) throw new Error("file troncato");
+        while (pos < end) { const c = read(b, pos, depth + 1); node.children.push(c); pos = c.end; }
+        node.cEnd = node.end = end;
+      }
+    } else {
+      if (indef) throw new Error("codifica non valida");
+      node.cEnd = node.end = pos + len;
+      if (node.end > b.length) throw new Error("file troncato");
+    }
+    return node;
+  }
+  const raw = (b, n) => b.subarray(n.cStart, n.cEnd);
+  function octets(b, n) {
+    if (!n.cons) return raw(b, n);
+    const parts = n.children.map(c => octets(b, c)), out = new Uint8Array(parts.reduce((s, x) => s + x.length, 0));
+    let p = 0; for (const x of parts) { out.set(x, p); p += x.length; }
+    return out;
+  }
+  function oid(b, n) {
+    const v = raw(b, n), out = [Math.floor(v[0] / 40), v[0] % 40]; let x = 0;
+    for (let i = 1; i < v.length; i++) { x = x * 128 + (v[i] & 0x7f); if (!(v[i] & 0x80)) { out.push(x); x = 0; } }
+    return out.join(".");
+  }
+  function str(b, n) {
+    const v = raw(b, n);
+    if (n.num === 30) { let s = ""; for (let i = 0; i + 1 < v.length; i += 2) s += String.fromCharCode((v[i] << 8) | v[i + 1]); return s; }
+    if (n.num === 20) return Array.from(v, c => String.fromCharCode(c)).join("");
+    return new TextDecoder().decode(v);
+  }
+  function time(b, n) {
+    const s = new TextDecoder().decode(raw(b, n));
+    const m = n.num === 23 ? s.match(/^(\d\d)(\d\d)(\d\d)(\d\d)(\d\d)(\d\d)?Z/) : s.match(/^(\d{4})(\d\d)(\d\d)(\d\d)(\d\d)(\d\d)?/);
+    if (!m) return null;
+    let y = +m[1]; if (n.num === 23) y += y < 50 ? 2000 : 1900;
+    return new Date(Date.UTC(y, +m[2] - 1, +m[3], +m[4], +m[5], +(m[6] || 0)));
+  }
+  const eq = (a, c) => a.length === c.length && a.every((x, i) => x === c[i]);
+  function subjectName(b, subj) {
+    const a = {};
+    for (const set of subj.children || []) for (const atv of set.children || []) {
+      const [o, v] = atv.children || []; if (!o || !v) continue;
+      try { a[oid(b, o)] = str(b, v); } catch { }
+    }
+    const full = [a["2.5.4.42"], a["2.5.4.4"]].filter(Boolean).join(" ");
+    return (a["2.5.4.3"] || full || a["2.5.4.10"] || "Firmatario sconosciuto").trim();
+  }
+  function maybeBase64(b) {
+    if (b[0] === 0x30) return b;
+    const txt = new TextDecoder("latin1").decode(b.subarray(0, Math.min(b.length, 64 * 1024 * 1024)));
+    const clean = txt.replace(/-----(BEGIN|END)[^-]*-----/g, "").replace(/\s+/g, "");
+    if (!/^[A-Za-z0-9+/]+=*$/.test(clean) || clean.length < 40) return b;
+    const bin = atob(clean), out = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+    return out;
+  }
+  function unwrapOnce(input) {
+    const b = maybeBase64(input);
+    if (b[0] !== 0x30) return null;
+    let root; try { root = read(b, 0); } catch { return null; }
+    const [t, wrap] = root.children || [];
+    if (!t || t.num !== 6 || oid(b, t) !== "1.2.840.113549.1.7.2" || !wrap?.children?.[0]) return null;
+    const ch = wrap.children[0].children;
+    const eci = ch.find((n, i) => i >= 2 && n.num === 16 && n.cls === 0);
+    const eWrap = eci?.children?.[1];
+    if (!eWrap) throw new Error("detached");
+    const content = octets(b, eWrap.children[0]);
+    // certificati e firmatari
+    const certs = [];
+    const certSet = ch.find(n => n.cls === 2 && n.num === 0);
+    for (const c of certSet?.children || []) {
+      try {
+        const tbs = c.children[0].children; let k = 0;
+        if (tbs[0].cls === 2) k = 1;
+        certs.push({ serial: raw(b, tbs[k]), name: subjectName(b, tbs[k + 4]) });
+      } catch { }
+    }
+    const signers = [];
+    const si = ch[ch.length - 1];
+    for (const s of (si && si.num === 17 ? si.children : [])) {
+      try {
+        const sid = s.children[1];
+        let cert = null;
+        if (sid.num === 16 && sid.children?.[1]) { const ser = raw(b, sid.children[1]); cert = certs.find(c => eq(c.serial, ser)); }
+        cert = cert || certs[0];
+        let when = null;
+        const attrs = s.children.find(n => n.cls === 2 && n.num === 0);
+        for (const a of attrs?.children || []) if (oid(b, a.children[0]) === "1.2.840.113549.1.9.5") when = time(b, a.children[1].children[0]);
+        signers.push({ name: cert ? cert.name : "Firmatario sconosciuto", when });
+      } catch { }
+    }
+    return { content, signers };
+  }
+  function unwrap(bytes) {
+    let content = bytes, signers = [], levels = 0;
+    for (; levels < 6; levels++) {
+      const r = unwrapOnce(content);
+      if (!r) break;
+      content = r.content; signers.push(...r.signers);
+    }
+    if (!levels) throw new Error("not-p7m");
+    return { content, signers };
+  }
+  function kind(c) {
+    const head = new TextDecoder("latin1").decode(c.subarray(0, 1024));
+    const i = head.indexOf("%PDF-");
+    if (i >= 0) return { type: "pdf", offset: i };
+    const t = head.replace(/^﻿|^ï»¿/, "").trimStart();
+    if (t.startsWith("<")) {
+      const probe = new TextDecoder().decode(c.subarray(0, 4096));
+      return { type: /FatturaElettronica/i.test(probe) ? "fattura" : "xml" };
+    }
+    return { type: "other" };
+  }
+  return { unwrap, kind };
+})();
+const fmtDate = d => d ? d.toLocaleString("it-IT", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "data non indicata";
+const SEAL = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="6"/><path d="m8.5 14-1.5 8 5-3 5 3-1.5-8"/></svg>';
+const LOCK = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
+
+async function showNotice(n) {
+  if (n.type === "signed") {
+    const list = n.signers.length ? n.signers.map(s => `<div class="signer"><span class="ic">${SEAL}</span><div><div class="who">${esc(s.name)}</div><div class="when">Firmato il ${esc(fmtDate(s.when))}</div></div></div>`).join("") : '<p class="muted">Nessun firmatario leggibile nel file.</p>';
+    await dialog({ title: "Documento firmato digitalmente", buttons: [{ label: "Ho capito", primary: true, value: true }], html:
+      `<p><b>${esc(n.name)}</b> è stato estratto dal file firmato.</p><div class="signers">${list}</div>
+       <p class="muted" style="font-size:13px">Nome e data sono letti dal file: la validità della firma <b>non viene verificata</b>. Per una verifica con valore legale usa un verificatore ufficiale (ad es. DiKe o ArubaSign).</p>
+       <div class="warnbox">Il PDF che salverai sarà una <b>copia senza firma digitale</b>: non avrà il valore legale del documento firmato originale.</div>` });
+  } else {
+    const fatt = n.type === "fattura", xml = fatt || n.type === "xml";
+    const outName = xml && !/\.xml$/i.test(n.name) ? n.name + ".xml" : n.name;
+    const r = await dialog({ title: fatt ? "Fattura elettronica" : "Contenuto non PDF", buttons: [
+      { label: "Chiudi", value: false }, { label: xml ? "Scarica XML" : "Scarica il contenuto", primary: true, value: true }], html:
+      `<p>Il file firmato <b>${esc(n.file)}</b> contiene ${fatt ? "una <b>fattura elettronica</b> in formato XML" : xml ? "un file <b>XML</b>" : "un file che <b>non è un PDF</b>"}: non ci sono pagine da mostrare o modificare.</p>
+       <p class="muted">Puoi comunque salvare il contenuto estratto (${esc(outName)}).</p>` });
+    if (r) {
+      const url = URL.createObjectURL(new Blob([n.content], { type: xml ? "application/xml" : "application/octet-stream" }));
+      const a = el("a"); a.href = url; a.download = outName; document.body.append(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 30000);
+    }
+  }
+}
+
 async function addFiles(fileList) {
-  const files = [...fileList].filter(f => isPdfFile(f) || isImgFile(f));
-  if (!files.length) { toast("Nessun PDF o immagine JPG/PNG trovato tra i file selezionati.", true); return; }
+  const files = [...fileList].filter(f => isPdfFile(f) || isImgFile(f) || isP7mFile(f));
+  if (!files.length) { toast("Nessun file PDF, P7M o immagine JPG/PNG tra quelli selezionati.", true); return; }
   busy(files.length > 1 ? `Apertura di ${files.length} file…` : "Apertura del file…");
-  let added = 0;
+  let added = 0, lastName = null;
   const firstLoad = S.pages.length === 0;
   const before = S.pages.map(p => ({ ...p }));
+  const notices = [];
+  let protectFrom = null;
   try {
     for (const f of files) {
+      let name = f.name;
       try {
-        const isImage = !isPdfFile(f);
-        const bytes = isImage ? await imageToPdf(f) : new Uint8Array(await f.arrayBuffer());
-        const pjs = await pdfjsLib.getDocument({ ...PDFJS_OPTS, data: bytes.slice() }).promise;
+        let bytes, isImage = false, signers = null;
+        if (isP7mFile(f)) {
+          const r = P7M.unwrap(new Uint8Array(await f.arrayBuffer()));
+          name = f.name.replace(/(\.p7m)+$/i, "") || "documento";
+          const k = P7M.kind(r.content);
+          if (k.type !== "pdf") { notices.push({ type: k.type, file: f.name, name, content: r.content }); continue; }
+          bytes = k.offset ? r.content.slice(k.offset) : r.content;
+          if (!/\.pdf$/i.test(name)) name += ".pdf";
+          signers = r.signers;
+        } else if (isImgFile(f) && !isPdfFile(f)) { isImage = true; bytes = await imageToPdf(f); }
+        else bytes = new Uint8Array(await f.arrayBuffer());
+        const { pjs, password } = await openPdf(bytes, name);
+        if (!pjs) { toast(`Apertura di "${name}" annullata.`); continue; }
         const id = S.nextDoc++;
-        const doc = { id, name: f.name, bytes, pjs, color: COLORS[(id - 1) % COLORS.length], libDoc: null, isImage };
+        const doc = { id, name, bytes, pjs, color: COLORS[(id - 1) % COLORS.length], libDoc: null, isImage, signers, password };
         S.docs.set(id, doc);
         for (let i = 0; i < pjs.numPages; i++) S.pages.push({ id: S.nextPage++, docId: id, index: i, rot: 0, sel: false });
-        added++;
+        added++; lastName = name;
+        if (signers) notices.push({ type: "signed", name, signers });
+        if (password && !S.protect && !protectFrom) protectFrom = { name, password };
       } catch (e) {
         console.error(e);
-        const msg = e && e.name === "PasswordException" ? `"${f.name}" è protetto da password e non può essere aperto.` : (isImgFile(f) && !isPdfFile(f) ? `Impossibile leggere l'immagine "${f.name}": il file sembra danneggiato.` : `Impossibile aprire "${f.name}": il file sembra danneggiato o non è un PDF valido.`);
+        let msg;
+        if (e && e.name === "PasswordException") msg = `"${name}" è protetto da password e non può essere aperto.`;
+        else if (isP7mFile(f)) msg = e.message === "detached" ? `"${f.name}" contiene solo la firma, senza il documento: serve anche il file originale.` : `Impossibile leggere "${f.name}": non sembra un file firmato .p7m valido.`;
+        else if (isImgFile(f) && !isPdfFile(f)) msg = `Impossibile leggere l'immagine "${f.name}": il file sembra danneggiato.`;
+        else msg = `Impossibile aprire "${f.name}": il file sembra danneggiato o non è un PDF valido.`;
         toast(msg, true);
       }
     }
   } finally { idle(); }
-  if (!added) return;
-  S.undo.push(before); $("#bUndo").disabled = false; S.dirty = true;
-  if (firstLoad && !$("#outName").value) {
-    $("#outName").value = added === 1 ? cleanName(files[0].name) : (files.every(isImgFile) ? "foto" : "unione");
+  if (added) {
+    S.undo.push(before); $("#bUndo").disabled = false; S.dirty = true;
+    if (firstLoad && !$("#outName").value) {
+      $("#outName").value = added === 1 ? cleanName(lastName) : (files.every(isImgFile) ? "foto" : "unione");
+    }
+    render();
+    if (!firstLoad) toast(added === 1 ? "File aggiunto in coda." : `${added} file aggiunti in coda.`);
+    if (protectFrom) {
+      setProtect(protectFrom.password);
+      toast(`"${protectFrom.name}" era protetto: i file salvati useranno la stessa password. Puoi cambiarla o toglierla dal lucchetto.`);
+    }
   }
-  render();
-  if (!firstLoad) toast(added === 1 ? "File aggiunto in coda." : `${added} file aggiunti in coda.`);
+  for (const n of notices) await showNotice(n);
 }
 
 /* ---------------- miniature ---------------- */
@@ -523,6 +821,7 @@ function render() {
   $("#toolbar").hidden = !has;
   $("#hint").hidden = !has;
   $("#bSave").disabled = !has;
+  $("#bLock").disabled = !has;
   $("#bSplit").disabled = S.pages.length < 2;
 
   const alive = new Set(S.pages.map(p => p.id));
@@ -551,7 +850,7 @@ function render() {
   chips.replaceChildren();
   for (const [id, n] of counts) {
     const d = S.docs.get(id);
-    const ch = el("div", "chip", `<span class="dot" style="background:${d.color}"></span><span class="nm" title="${esc(d.name)}">${esc(d.name)}</span><span class="ct">${n} pag.</span><button title="Rimuovi questo file">${ICON.x}</button>`);
+    const ch = el("div", "chip", `<span class="dot" style="background:${d.color}"></span><span class="nm" title="${esc(d.name)}">${esc(d.name)}</span>${d.signers ? `<span class="flag" title="${esc("Firmato digitalmente (firma non verificata): " + (d.signers.map(x => x.name).join(", ") || "firmatario non leggibile"))}">${SEAL}</span>` : ""}${d.password ? `<span class="flag" title="Il file originale era protetto da password">${LOCK}</span>` : ""}<span class="ct">${n} pag.</span><button title="Rimuovi questo file">${ICON.x}</button>`);
     ch.querySelector("button").onclick = () => { snapshot(); S.pages = S.pages.filter(p => p.docId !== id); render(); };
     chips.append(ch);
   }
@@ -752,6 +1051,116 @@ function download(bytes, name) {
   setTimeout(() => URL.revokeObjectURL(url), 30000);
 }
 
+/* ---------------- protezione con password (AES-256, standard PDF 2.0) ----------------
+   pdf-lib non sa cifrare: la cifratura è implementata qui con le funzioni crittografiche del browser
+   (Web Crypto). Algoritmo: Standard Security Handler V5/R6 (ISO 32000-2), solo password di apertura. */
+const PdfCrypt = (() => {
+  const { PDFRawStream, PDFHexString, PDFString, PDFDict, PDFArray, PDFName, PDFNumber, PDFBool } = window.PDFLib;
+  const subtle = crypto.subtle;
+  const rnd = n => crypto.getRandomValues(new Uint8Array(n));
+  const cat = (...a) => { const o = new Uint8Array(a.reduce((s, x) => s + x.length, 0)); let p = 0; for (const x of a) { o.set(x, p); p += x.length; } return o; };
+  const hex = b => Array.from(b, x => x.toString(16).padStart(2, "0")).join("");
+  async function aesCbc(key, iv, data, pad) {
+    const k = await subtle.importKey("raw", key, "AES-CBC", false, ["encrypt"]);
+    const out = new Uint8Array(await subtle.encrypt({ name: "AES-CBC", iv }, k, data));
+    return pad ? out : out.slice(0, data.length); // senza padding: i primi blocchi CBC sono identici
+  }
+  async function hash2B(pw, salt, udata) { // ISO 32000-2, algoritmo 2.B
+    let K = new Uint8Array(await subtle.digest("SHA-256", cat(pw, salt, udata)));
+    for (let i = 0; ;) {
+      const unit = cat(pw, K, udata), K1 = new Uint8Array(unit.length * 64);
+      for (let j = 0; j < 64; j++) K1.set(unit, j * unit.length);
+      const E = await aesCbc(K.slice(0, 16), K.slice(16, 32), K1, false);
+      let sum = 0; for (let j = 0; j < 16; j++) sum += E[j];
+      K = new Uint8Array(await subtle.digest(["SHA-256", "SHA-384", "SHA-512"][sum % 3], E));
+      i++;
+      if (i >= 64 && E[E.length - 1] <= i - 32) break;
+    }
+    return K.slice(0, 32);
+  }
+  const pwBytes = p => new TextEncoder().encode(String(p).normalize("NFKC")).slice(0, 127);
+
+  async function encrypt(bytes, password) {
+    const { PDFDocument } = window.PDFLib;
+    const pw = pwBytes(password), none = new Uint8Array(0), zero = new Uint8Array(16);
+    const FK = rnd(32);
+    const uvs = rnd(8), uks = rnd(8), ovs = rnd(8), oks = rnd(8);
+    const U = cat(await hash2B(pw, uvs, none), uvs, uks);
+    const UE = await aesCbc(await hash2B(pw, uks, none), zero, FK, false);
+    const O = cat(await hash2B(pw, ovs, U), ovs, oks);
+    const OE = await aesCbc(await hash2B(pw, oks, U), zero, FK, false);
+    const P = -4; // tutti i permessi: si protegge solo l'apertura
+    const perms = new Uint8Array(16);
+    new DataView(perms.buffer).setInt32(0, P, true); perms.fill(0xff, 4, 8); perms.set([0x54, 0x61, 0x64, 0x62], 8); perms.set(rnd(4), 12);
+    const Perms = await aesCbc(FK, zero, perms, false);
+
+    const doc = await PDFDocument.load(bytes, { updateMetadata: false });
+    const ctx = doc.context;
+    const key = await subtle.importKey("raw", FK, "AES-CBC", false, ["encrypt"]);
+    const enc = async data => { const iv = rnd(16); return cat(iv, new Uint8Array(await subtle.encrypt({ name: "AES-CBC", iv }, key, data))); };
+    async function walk(o) {
+      if (o instanceof PDFString || o instanceof PDFHexString) return PDFHexString.of(hex(await enc(o.asBytes())));
+      if (o instanceof PDFArray) { for (let i = 0; i < o.size(); i++) { const v = o.get(i), n = await walk(v); if (n !== v) o.set(i, n); } return o; }
+      if (o instanceof PDFDict) { for (const [k, v] of o.entries()) { const n = await walk(v); if (n !== v) o.set(k, n); } return o; }
+      return o;
+    }
+    doc.catalog.set(PDFName.of("Extensions"), ctx.obj({ ADBE: { BaseVersion: "1.7", ExtensionLevel: 8 } }));
+    for (const [ref, obj] of ctx.enumerateIndirectObjects()) {
+      if (obj instanceof PDFRawStream) {
+        const type = obj.dict.get(PDFName.of("Type"));
+        if (type === PDFName.of("XRef") || type === PDFName.of("ObjStm")) { ctx.delete(ref); continue; }
+        await walk(obj.dict);
+        ctx.assign(ref, PDFRawStream.of(obj.dict, await enc(obj.contents)));
+      } else if (obj.dict && typeof obj.getContents === "function") {
+        await walk(obj.dict);
+        ctx.assign(ref, PDFRawStream.of(obj.dict, await enc(obj.getContents())));
+      } else {
+        const n = await walk(obj);
+        if (n !== obj) ctx.assign(ref, n);
+      }
+    }
+    const E = ctx.obj({ Filter: "Standard", V: 5, R: 6, Length: 256, P, StmF: "StdCF", StrF: "StdCF",
+      CF: { StdCF: { AuthEvent: "DocOpen", CFM: "AESV3", Length: 32 } } });
+    E.set(PDFName.of("EncryptMetadata"), PDFBool.True);
+    for (const [k, v] of [["O", O], ["U", U], ["OE", OE], ["UE", UE], ["Perms", Perms]]) E.set(PDFName.of(k), PDFHexString.of(hex(v)));
+    ctx.trailerInfo.Encrypt = ctx.register(E);
+    const id = PDFHexString.of(hex(rnd(16)));
+    ctx.trailerInfo.ID = ctx.obj([id, id]);
+    return doc.save({ useObjectStreams: false, updateFieldAppearances: false, addDefaultPage: false });
+  }
+  return { encrypt };
+})();
+
+function setProtect(pw) {
+  S.protect = pw || null;
+  const on = !!S.protect;
+  $("#bLock").classList.toggle("locked", on);
+  $("#bLock").title = on ? "Protezione con password attiva: clic per modificarla o toglierla" : "Proteggi con password i PDF salvati";
+  $("#saveLbl").textContent = on ? "Salva protetto" : "Salva PDF";
+}
+async function finalize(bytes) { return S.protect ? PdfCrypt.encrypt(bytes, S.protect) : bytes; }
+
+$("#bLock").onclick = () => {
+  $("#lp1").value = $("#lp2").value = S.protect || "";
+  $("#lpShow").checked = false; $("#lp1").type = $("#lp2").type = "password";
+  $("#lpErr").textContent = "";
+  $("#lpOff").hidden = !S.protect;
+  $("#lpOk").textContent = S.protect ? "Aggiorna" : "Proteggi";
+  $("#lockModal").classList.add("on");
+  setTimeout(() => $("#lp1").focus(), 30);
+};
+$("#lpShow").onchange = e => { $("#lp1").type = $("#lp2").type = e.target.checked ? "text" : "password"; };
+$("#lpOk").onclick = () => {
+  const a = $("#lp1").value, b = $("#lp2").value;
+  if (!a) { $("#lpErr").textContent = "Scrivi una password."; return; }
+  if (a !== b) { $("#lpErr").textContent = "Le due password non coincidono."; return; }
+  if (new TextEncoder().encode(a).length > 127) { $("#lpErr").textContent = "La password è troppo lunga (massimo circa 120 caratteri)."; return; }
+  setProtect(a); $("#lockModal").classList.remove("on");
+  toast("Protezione attiva: i PDF salvati chiederanno la password.");
+};
+$("#lpOff").onclick = () => { setProtect(null); $("#lockModal").classList.remove("on"); toast("Protezione rimossa: i PDF verranno salvati senza password."); };
+for (const id of ["#lp1", "#lp2"]) $(id).addEventListener("keydown", e => { if (e.key === "Enter") $("#lpOk").click(); });
+
 /* Salva un file: con "Salva con nome" nativo se il browser lo supporta (Chrome/Edge), altrimenti download. */
 async function saveOne(pages, name) {
   name = withPdf(name);
@@ -766,13 +1175,14 @@ async function saveOne(pages, name) {
   }
   busy("Creazione del PDF…"); await nextFrame();
   try {
-    const bytes = await buildPdf(pages, name.replace(/\.pdf$/i, ""));
+    const bytes = await finalize(await buildPdf(pages, name.replace(/\.pdf$/i, "")));
+    const tail = S.protect ? " (protetto da password)" : "";
     if (handle) {
       const w = await handle.createWritable(); await w.write(bytes); await w.close();
-      toast(`Salvato: ${handle.name}`);
+      toast(`Salvato: ${handle.name}${tail}`);
     } else {
       download(bytes, name);
-      toast(`Scaricato: ${name}`);
+      toast(`Scaricato: ${name}${tail}`);
     }
     return true;
   } catch (e) {
@@ -842,6 +1252,7 @@ function openSplit() {
   if (S.pages.length < 2) return;
   $("#splitModal").classList.add("on");
   $("#sFolder").hidden = !window.showDirectoryPicker;
+  $("#sLock").hidden = !S.protect;
   $("#sDownloadAll").classList.toggle("primary", !window.showDirectoryPicker);
   computeParts();
 }
@@ -867,7 +1278,7 @@ $("#sFolder").onclick = async () => {
   try {
     for (let i = 0; i < parts.length; i++) {
       busy(`Salvataggio ${i + 1} di ${parts.length}…`); await nextFrame();
-      const bytes = await buildPdf(S.pages.slice(parts[i].from, parts[i].to + 1), names[i].replace(/\.pdf$/, ""));
+      const bytes = await finalize(await buildPdf(S.pages.slice(parts[i].from, parts[i].to + 1), names[i].replace(/\.pdf$/, "")));
       const fh = await dir.getFileHandle(names[i], { create: true });
       const w = await fh.createWritable(); await w.write(bytes); await w.close();
     }
@@ -881,7 +1292,7 @@ $("#sDownloadAll").onclick = async () => {
   try {
     for (let i = 0; i < parts.length; i++) {
       busy(`Creazione ${i + 1} di ${parts.length}…`); await nextFrame();
-      download(await buildPdf(S.pages.slice(parts[i].from, parts[i].to + 1), names[i].replace(/\.pdf$/, "")), names[i]);
+      download(await finalize(await buildPdf(S.pages.slice(parts[i].from, parts[i].to + 1), names[i].replace(/\.pdf$/, ""))), names[i]);
       await new Promise(r => setTimeout(r, 250));
     }
     toast(`${parts.length} file scaricati. Se il browser chiede il permesso per i download multipli, consentilo.`);
@@ -937,7 +1348,11 @@ $("#pvDel").onclick = () => {
 };
 
 /* ---------------- modali, tastiera, varie ---------------- */
-function closeModals() { document.querySelectorAll(".modal-bg.on").forEach(m => m.classList.remove("on")); pvId = null; }
+function closeModals() {
+  if ($("#dlg").classList.contains("on")) { closeDialog(); return; } // Esc chiude prima la finestra in primo piano
+  closeDialog();
+  document.querySelectorAll(".modal-bg.on").forEach(m => m.classList.remove("on")); pvId = null;
+}
 document.querySelectorAll("[data-close]").forEach(b => b.onclick = closeModals);
 document.querySelectorAll(".modal-bg").forEach(m => m.addEventListener("mousedown", e => { if (e.target === m) closeModals(); }));
 
@@ -949,7 +1364,7 @@ $("#bUndo").onclick = undo;
 $("#bClear").onclick = () => {
   if (S.dirty && !confirm("Chiudere tutti i file? Le modifiche non salvate andranno perse.")) return;
   S.docs.forEach(d => d.pjs.destroy()); S.docs.clear(); S.pages = []; S.undo = []; S.dirty = false;
-  $("#bUndo").disabled = true; $("#outName").value = ""; render();
+  $("#bUndo").disabled = true; $("#outName").value = ""; setProtect(null); render();
 };
 $("#outName").addEventListener("keydown", e => { if (e.key === "Enter") $("#bSave").click(); });
 

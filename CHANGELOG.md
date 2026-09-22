@@ -3,6 +3,15 @@
 Tutte le modifiche a PDF Tool, dalla più recente.
 Tipi di modifica: **Nuovo**, **Migliorato**, **Correzione**.
 
+## [1.2.0] – 2026-09-22
+
+### Nuovo
+- Apertura dei **PDF protetti da password**: il programma chiede la password e, se è sbagliata, permette di riprovare.
+- **Protezione con password** dei PDF salvati, con cifratura AES a 256 bit, dal pulsante con il lucchetto. Vale per Salva, Estrai selezione e Dividi. La password non viene memorizzata da nessuna parte.
+- Se apri un PDF protetto, i file salvati mantengono la stessa password. Si può cambiare o togliere dal lucchetto.
+- Apertura dei file firmati digitalmente **.p7m**, anche con firme multiple (`.p7m.p7m`) e in formato testo (Base64). Il PDF contenuto viene estratto e vengono mostrati nome del firmatario e data della firma, letti dal file e **non verificati**. Il PDF salvato è una copia senza firma digitale.
+- Per le fatture elettroniche `.xml.p7m` si può scaricare il file XML estratto.
+
 ## [1.1.0] – 2026-09-22
 
 ### Nuovo

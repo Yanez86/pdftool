@@ -13,13 +13,15 @@ Non installa nulla, non ha bisogno di internet e **nessun dato lascia il tuo com
 - **Estrae** le pagine selezionate in un nuovo PDF
 - **Rinomina** i file prima di salvarli, anche ogni singola parte quando dividi
 - **Foto come pagine**: aggiungi immagini JPG o PNG, ognuna diventa una pagina A4 ruotabile
+- **PDF con password**: apre i PDF protetti chiedendo la password e può proteggere con password i PDF salvati (AES a 256 bit)
+- **File firmati .p7m**: estrae il PDF dalla busta firmata e mostra firmatario e data (senza verificare la validità della firma)
 - Anteprima ingrandita, annulla (Ctrl+Z), tema chiaro e scuro automatico
 
 ## Come si usa
 
 1. Scarica `index.html` (puoi rinominarlo come vuoi, ad es. `PDF Tool.html`)
 2. Aprilo con un doppio clic: si apre nel browser
-3. Trascina nella finestra i PDF o le foto
+3. Trascina nella finestra i PDF, i file .p7m o le foto
 
 Funziona con Chrome, Edge, Firefox e Safari recenti. Con **Chrome ed Edge** si apre la
 finestra "Salva con nome" e, quando dividi, puoi salvare tutte le parti direttamente in una cartella.
@@ -54,8 +56,14 @@ La rotazione modifica solo l'attributo `/Rotate` della pagina. Le miniature le d
 
 I PDF cifrati senza password di apertura (bollette, estratti conto, documenti firmati) vengono decifrati in locale tramite pdf.js prima del salvataggio.
 
-**Limiti:** i PDF protetti da password di apertura non si possono aprire. Moduli compilabili
-e segnalibri (indice laterale) potrebbero non essere mantenuti dopo unione o divisione.
+**Password:** la protezione dei file salvati usa lo standard AES-256 dei PDF, supportato da Acrobat 9 e successivi e da tutti i browser.
+Protegge solo l'apertura, senza limiti su stampa o copia. Se dimentichi la password, il file non si può più aprire.
+
+**File .p7m:** il programma legge il nome del firmatario e la data dichiarata, ma **non verifica** la validità
+legale della firma, perché servirebbe una connessione. Per quella usa un verificatore ufficiale.
+Il PDF estratto e salvato è una copia **senza firma digitale**.
+
+**Limiti:** moduli compilabili e segnalibri (indice laterale) potrebbero non essere mantenuti dopo unione o divisione.
 
 ## Sviluppo
 
