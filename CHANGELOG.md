@@ -3,6 +3,13 @@
 Tutte le modifiche a PDF Tool, dalla più recente.
 Tipi di modifica: **Nuovo**, **Migliorato**, **Correzione**.
 
+## [1.6.0] – 2026-09-23
+
+### Migliorato
+- **Modalità divisione più leggera**: via i bordi colorati attorno alle pagine. Al loro posto una linea colorata continua sotto le pagine dello stesso file, con il nome del file scritto sopra la prima pagina del gruppo.
+- Il **marcatore di taglio** è ora esattamente a metà dello spazio tra due pagine e si può **trascinare** per spostare il punto di divisione; un clic secco lo toglie.
+- **Opzioni di salvataggio** in griglia 2×2, senza descrizioni in grigio: ogni scelta mostra il **peso stimato** del risultato, calcolato all'apertura su una pagina campione. "Qualità originale" è evidenziata come scelta consigliata.
+
 ## [1.5.0] – 2026-09-23
 
 ### Nuovo
