@@ -9,7 +9,7 @@ Non installa nulla, non ha bisogno di internet e **nessun dato lascia il tuo com
 - **Ruota** singole pagine (90° a sinistra o a destra)
 - **Riordina** le pagine trascinandole
 - **Unisce** più PDF: aggiungi i file e salvali come un unico documento
-- **Divide** un PDF: una pagina per file, ogni N pagine, per intervalli (`1-3, 4-7, 8-`) o per file di origine
+- **Divide** un PDF a colpo d'occhio: clicchi sulle forbici tra le pagine e dai un nome a ogni file
 - **Estrae** le pagine selezionate in un nuovo PDF
 - **Rinomina** i file prima di salvarli, anche ogni singola parte quando dividi
 - **Foto come pagine**: aggiungi immagini JPG o PNG, ognuna diventa una pagina A4 ruotabile
@@ -76,6 +76,9 @@ Possono azzerarsi se svuoti i dati del browser o sposti il file HTML: usa **Espo
 
 **Testo:** usa i caratteri standard del PDF (Helvetica, Times, Courier) con la codifica dell'alfabeto latino occidentale.
 Accenti e simboli europei sono supportati; emoji e alfabeti non latini vengono sostituiti con `?`.
+
+**Qualità ridotta e bianco e nero:** funzionano come la censura, cioè trasformando ogni pagina in un'immagine.
+Su tutte le pagine si perdono testo selezionabile, ricerca e OCR. Il peso scende molto per le scansioni, ma può aumentare per un PDF di solo testo.
 
 **OCR:** il testo OCR delle pagine non censurate viene mantenuto. Le foto aggiunte come pagine non hanno OCR.
 

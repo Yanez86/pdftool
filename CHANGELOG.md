@@ -3,6 +3,16 @@
 Tutte le modifiche a PDF Tool, dalla più recente.
 Tipi di modifica: **Nuovo**, **Migliorato**, **Correzione**.
 
+## [1.5.0] – 2026-09-23
+
+### Nuovo
+- **Divisione grafica**: il pulsante "Dividi" apre una modalità in cui si clicca sulle **forbici tra una pagina e l'altra** per scegliere i punti di taglio. Ogni gruppo prende un colore e ha sopra un campo per il **nome del file**. In questa modalità il trascinamento delle pagine è disattivato. Restano i pulsanti "Taglia tutte" (un file per pagina) e "Rimuovi tagli". Sostituisce la vecchia finestra con gli intervalli scritti a mano.
+- **Opzioni di salvataggio**: qualità *Originale* (predefinita), *Alta* 200 dpi, *Media* 150 dpi, *Bassa* 100 dpi, e **bianco e nero**. Qualità ridotta e bianco e nero trasformano ogni pagina in un'immagine: un avviso spiega che si perdono testo selezionabile, ricerca e OCR e che il peso può anche aumentare per i PDF di solo testo. Con il bianco e nero anche timbri e testo inseriti diventano grigi.
+- **Cursore per la dimensione delle miniature**, che vengono ridisegnate più nitide quando le ingrandisci. La dimensione scelta viene ricordata.
+
+### Migliorato
+- A salvataggio finito viene indicato il peso del file ottenuto.
+
 ## [1.4.0] – 2026-09-23
 
 ### Nuovo

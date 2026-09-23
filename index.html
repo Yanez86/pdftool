@@ -63,7 +63,29 @@ header{display:flex;align-items:center;gap:12px;padding:12px 20px;background:var
 
 /* ---------- grid ---------- */
 main{flex:1;overflow:auto;position:relative}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(172px,1fr));gap:18px;padding:22px 20px 28px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--tw,180px),1fr));gap:18px;padding:22px 20px 28px}
+/* modalità divisione */
+.cutbar{display:flex;align-items:center;gap:10px;padding:10px 20px;background:var(--accent-soft);border-bottom:1px solid var(--accent);flex-wrap:wrap}
+.cutbar .t{flex:1;min-width:200px;font-size:13px}
+.cutbar .t b{color:var(--text)}
+body.cutting .card{cursor:default}
+body.cutting .card .actions,body.cutting .card .check{display:none}
+.cut{position:absolute;top:0;bottom:0;left:-14px;width:20px;display:grid;place-items:center;cursor:pointer;z-index:3}
+.cut::before{content:"";position:absolute;top:8px;bottom:8px;width:0;border-left:2px dashed var(--border-strong)}
+.cut:hover::before{border-color:var(--accent)}
+.cut .ic{opacity:0;width:24px;height:24px;border-radius:50%;background:var(--surface);border:1px solid var(--border-strong);display:grid;place-items:center;color:var(--muted);box-shadow:var(--shadow);z-index:1}
+.cut:hover .ic{opacity:1;border-color:var(--accent);color:var(--accent)}
+.cut.on::before{border-left:3px solid var(--accent);top:0;bottom:0}
+.cut.on .ic{opacity:1;background:var(--accent);border-color:var(--accent);color:#fff}
+.gname{position:absolute;left:0;right:0;top:-34px;display:flex;align-items:center;gap:6px;z-index:2}
+.gname input{flex:1;min-width:0;height:28px;border:1px solid var(--border-strong);border-radius:8px;background:var(--surface);padding:0 8px;font-size:12px}
+.gname input:focus{outline:0;border-color:var(--sel);box-shadow:0 0 0 3px var(--sel-soft)}
+.gname .tag{font-size:10.5px;font-weight:650;border-radius:5px;padding:2px 6px;color:#fff;flex:none}
+body.cutting .grid{padding-top:44px;row-gap:46px}
+body.cutting .card{border-width:2px}
+.zoom{display:flex;align-items:center;gap:6px;color:var(--muted)}
+.zoom input[type=range]{width:96px;accent-color:var(--sel)}
+@media (max-width:640px){.zoom{display:none}}
 .card{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px 10px 8px;box-shadow:var(--shadow);cursor:pointer;user-select:none;transition:border-color .12s,box-shadow .12s,transform .12s,opacity .12s}
 .card:hover{border-color:var(--border-strong)}
 .card.sel{border-color:var(--sel);box-shadow:0 0 0 3px var(--sel-soft),var(--shadow)}
@@ -255,11 +277,22 @@ main{flex:1;overflow:auto;position:relative}
   <div class="spacer"></div>
   <button class="btn" id="bAdd" title="Aggiungi PDF o immagini JPG/PNG (puoi anche trascinarli)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span class="lbl">Aggiungi file</span></button>
   <button class="btn" id="bSplit" disabled title="Dividi in più PDF"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.1 15.9M14.5 14.5 20 20M8.1 8.1 12 12"/></svg><span class="lbl">Dividi…</span></button>
+  <button class="btn icon" id="bOpts" title="Opzioni di salvataggio: qualità e bianco e nero"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 8h10M18 8h2M4 16h4M12 16h8"/><circle cx="16" cy="8" r="2.2"/><circle cx="10" cy="16" r="2.2"/></svg></button>
   <button class="btn" id="bStamps" title="Libreria timbri: immagini da applicare sui PDF"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21h14M6 17h12l-1-3.5a2 2 0 0 0-2-1.5h-1l.8-4a2.8 2.8 0 1 0-5.6 0l.8 4H9a2 2 0 0 0-2 1.5z"/></svg><span class="lbl">Timbri</span></button>
   <button class="btn icon" id="bLock" disabled title="Proteggi con password i PDF salvati"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></button>
   <div class="namebox" title="Nome del file da salvare"><input id="outName" placeholder="nome-file" spellcheck="false" autocomplete="off"><span>.pdf</span></div>
   <button class="btn primary" id="bSave" disabled title="Salva PDF (Ctrl+S)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg><span class="lbl" id="saveLbl">Salva PDF</span></button>
 </header>
+
+<div class="cutbar" id="cutbar" hidden>
+  <span class="t"><b>Modalità divisione.</b> Clicca sulle forbici tra le pagine per scegliere dove tagliare. Sopra ogni gruppo puoi scrivere il nome del file. Il trascinamento delle pagine è disattivato.</span>
+  <button class="btn" id="cutAll" title="Un file per ogni pagina">Taglia tutte</button>
+  <button class="btn" id="cutNone">Rimuovi tagli</button>
+  <div class="sep"></div>
+  <button class="btn" id="cutDone">Fine</button>
+  <button class="btn" id="cutDl">Scarica</button>
+  <button class="btn primary" id="cutFolder">Salva in una cartella…</button>
+</div>
 
 <div class="toolbar" id="toolbar" hidden>
   <div class="chips" id="chips"></div>
@@ -272,6 +305,8 @@ main{flex:1;overflow:auto;position:relative}
   <button class="btn" id="bSaveSel" title="Salva solo le pagine selezionate in un nuovo PDF">Estrai selezione</button>
   <div class="sep"></div>
   <button class="btn icon" id="bUndo" title="Annulla (Ctrl+Z)" disabled><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></button>
+  <div class="zoom" title="Dimensione delle miniature"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="6" height="6" rx="1.5"/></svg><input type="range" id="zoom" min="120" max="340" step="20" value="180"></div>
+  <div class="sep"></div>
   <button class="btn icon" id="bClear" title="Chiudi tutto"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
 </div>
 
@@ -297,26 +332,22 @@ main{flex:1;overflow:auto;position:relative}
 <input type="file" id="file" accept="application/pdf,.pdf,image/png,image/jpeg,.png,.jpg,.jpeg,.p7m,application/pkcs7-mime" multiple hidden>
 <div class="dropzone" id="dropzone"><div>Rilascia per aggiungere i PDF</div></div>
 
-<!-- split -->
-<div class="modal-bg" id="splitModal">
-  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="splitTitle">
-    <header><h3 id="splitTitle">Dividi in più PDF</h3><div class="spacer"></div><button class="btn ghost icon" data-close title="Chiudi"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></header>
+<!-- opzioni di salvataggio -->
+<div class="modal-bg" id="optModal">
+  <div class="modal narrow" role="dialog" aria-modal="true" aria-labelledby="optTitle">
+    <header><h3 id="optTitle">Opzioni di salvataggio</h3><div class="spacer"></div><button class="btn ghost icon" data-close title="Chiudi"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></header>
     <div class="body">
       <div class="opts">
-        <label class="opt"><input type="radio" name="smode" value="each" checked><div><div class="t">Una pagina per file</div><div class="d">Ogni pagina diventa un PDF separato</div></div></label>
-        <label class="opt"><input type="radio" name="smode" value="n"><div style="flex:1"><div class="t">Ogni N pagine</div><div class="d">Blocchi di pagine della stessa lunghezza</div></div><input type="number" id="sN" min="1" value="2"></label>
-        <label class="opt"><input type="radio" name="smode" value="ranges"><div style="flex:none"><div class="t">Intervalli</div><div class="d">Es. 1-3, 4-7, 8</div></div><input type="text" id="sRanges" placeholder="1-3, 4-7, 8-" spellcheck="false"></label>
-        <label class="opt"><input type="radio" name="smode" value="src"><div><div class="t">Per file di origine</div><div class="d">Separa di nuovo le pagine in base al PDF da cui provengono</div></div></label>
+        <label class="opt"><input type="radio" name="qmode" value="0" checked><div><div class="t">Qualità originale</div><div class="d">Nessuna perdita: pagine copiate così come sono</div></div></label>
+        <label class="opt"><input type="radio" name="qmode" value="200"><div><div class="t">Alta · 200 dpi</div><div class="d">Ottima per stampa e lettura</div></div></label>
+        <label class="opt"><input type="radio" name="qmode" value="150"><div><div class="t">Media · 150 dpi</div><div class="d">Buon compromesso per email</div></div></label>
+        <label class="opt"><input type="radio" name="qmode" value="100"><div><div class="t">Bassa · 100 dpi</div><div class="d">Il più leggero, va bene a schermo</div></div></label>
       </div>
-      <div class="lockinfo" id="sLock" hidden><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Tutti i file verranno protetti con la password impostata.</div>
-      <div class="err" id="sErr"></div>
-      <div class="parts" id="sParts"></div>
+      <label class="chk" style="margin:14px 0 0"><input type="checkbox" id="optGray">Salva in bianco e nero (scala di grigi)</label>
+      <div class="warnbox" id="optWarn" hidden><b>Attenzione:</b> con qualità ridotta o bianco e nero ogni pagina viene trasformata in un'immagine. Si perdono <b>testo selezionabile, ricerca e OCR</b>, oltre a link e commenti. Il peso scende molto per le scansioni, ma può <b>aumentare</b> per un PDF di solo testo.</div>
+      <p class="muted" style="font-size:12.5px;margin:12px 0 0">Le opzioni valgono per tutti i salvataggi finché non le riporti su "Qualità originale".</p>
     </div>
-    <footer>
-      <button class="btn" data-close>Annulla</button>
-      <button class="btn" id="sDownloadAll">Scarica tutti</button>
-      <button class="btn primary" id="sFolder">Salva tutti in una cartella…</button>
-    </footer>
+    <footer><button class="btn" id="optReset" style="margin-right:auto">Riporta all'originale</button><button class="btn primary" data-close>Fatto</button></footer>
   </div>
 </div>
 
@@ -537,6 +568,12 @@ const ICON = {
 /* ---------------- versione e novità ----------------
    Per ogni nuova versione: aggiungere una voce IN CIMA a questa lista (e a CHANGELOG.md). */
 const CHANGELOG = [
+  { v: "1.5.0", date: "2026-09-23", items: [
+    ["new", "Divisione grafica: si clicca sulle forbici tra una pagina e l'altra per scegliere dove tagliare, e sopra ogni gruppo si scrive il nome del file"],
+    ["new", "Opzioni di salvataggio: qualità ridotta (200, 150 o 100 dpi) e salvataggio in bianco e nero, con avviso su ciò che si perde"],
+    ["new", "Cursore per ingrandire e rimpicciolire le miniature, con la dimensione ricordata"],
+    ["imp", "Al termine del salvataggio viene indicato il peso del file ottenuto"],
+  ]},
   { v: "1.4.0", date: "2026-09-23", items: [
     ["new", "Timbri: immagini PNG o JPG da applicare sui PDF, con spostamento e ridimensionamento; si possono applicare a più pagine selezionate in un colpo solo"],
     ["new", "I timbri restano salvati in questo browser, solo su questo computer, e si possono esportare e importare con un file di backup"],
@@ -590,6 +627,7 @@ const S = {
   cards: new Map(),  // page.id -> element
   nextDoc: 1, nextPage: 1, nextItem: 1, anchor: null, dirty: false, protect: null,
   stamps: new Map(), stampPick: false, stampsOff: false,
+  cutting: false, cuts: new Set(), cutNames: new Map(), quality: 0, gray: false, zoom: 180,
 };
 
 /* ---------------- utilità UI ---------------- */
@@ -962,7 +1000,24 @@ async function addFiles(fileList) {
 }
 
 /* ---------------- miniature ---------------- */
-const THUMB = 150;
+let THUMB = 150;
+function setZoom(v, redraw = true) {
+  S.zoom = Math.max(120, Math.min(340, +v || 172));
+  document.documentElement.style.setProperty("--tw", S.zoom + "px");
+  $("#zoom").value = S.zoom;
+  THUMB = Math.round(S.zoom * 0.92);
+  try { localStorage.setItem("pdftool-zoom", S.zoom); } catch { }
+  if (redraw) scheduleThumbs();
+}
+let thumbTimer = null;
+function scheduleThumbs() { // ridisegna le miniature che sono diventate più grandi della loro risoluzione
+  clearTimeout(thumbTimer);
+  thumbTimer = setTimeout(() => {
+    for (const [id, card] of S.cards) if ((+card.dataset.res || 0) < THUMB - 4) { card.dataset.res = ""; io.observe(card); }
+  }, 350);
+}
+$("#zoom").oninput = e => setZoom(e.target.value);
+try { const z = +localStorage.getItem("pdftool-zoom"); if (z) setZoom(z, false); else setZoom(180, false); } catch { setZoom(180, false); }
 const io = new IntersectionObserver(entries => {
   for (const e of entries) if (e.isIntersecting) { io.unobserve(e.target); drawThumb(e.target); }
 }, { root: $("#main"), rootMargin: "400px" });
@@ -979,6 +1034,7 @@ async function drawThumb(card) {
     const vp = page.getViewport({ scale: scale * dpr });
     const c = document.createElement("canvas");
     c.width = Math.ceil(vp.width); c.height = Math.ceil(vp.height);
+    card.dataset.res = THUMB;
     const wrap = el("div", "pgw");
     wrap.style.width = (vp.width / Math.max(vp.width, vp.height) * 94).toFixed(2) + "%";
     await page.render({ canvasContext: c.getContext("2d"), viewport: vp }).promise;
@@ -1031,6 +1087,11 @@ function render() {
   $("#bSave").disabled = !has;
   $("#bLock").disabled = !has;
   $("#bSplit").disabled = S.pages.length < 2;
+  if (S.cutting && S.pages.length < 2) setCutting(false);
+  for (const id of [...S.cuts]) if (!S.pages.some(p => p.id === id)) S.cuts.delete(id);
+  const groups = S.cutting ? cutGroups() : [];
+  const groupOf = new Map();
+  groups.forEach((g, k) => { for (let i = g.from; i <= g.to; i++) groupOf.set(i, { g, k }); });
 
   const alive = new Set(S.pages.map(p => p.id));
   for (const [id, c] of S.cards) if (!alive.has(id)) { io.unobserve(c); c.remove(); S.cards.delete(id); }
@@ -1048,6 +1109,35 @@ function render() {
     src.textContent = multi ? (d.isImage ? d.name : `${d.name.replace(/\.pdf$/i, "")} · p.${p.index + 1}`) : (p.index !== i ? `orig. p.${p.index + 1}` : "");
     src.title = `${d.name}, pagina ${p.index + 1}`;
     applyRot(c, p);
+    c.draggable = !S.cutting;
+    // modalità divisione: forbici tra le pagine e nome del file sul primo foglio di ogni gruppo
+    let cut = c.querySelector(".cut"), gn = c.querySelector(".gname");
+    if (S.cutting && i > 0) {
+      if (!cut) {
+        cut = el("div", "cut", `<span class="ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.1 15.9M14.5 14.5 20 20M8.1 8.1 12 12"/></svg></span>`);
+        cut.onclick = ev => { ev.stopPropagation(); S.cuts.has(p.id) ? S.cuts.delete(p.id) : S.cuts.add(p.id); render(); };
+        c.append(cut);
+      }
+      cut.classList.toggle("on", S.cuts.has(p.id));
+      cut.title = S.cuts.has(p.id) ? "Togli il taglio" : "Taglia qui: la pagina inizia un nuovo file";
+    } else if (cut) cut.remove();
+    const gi = groupOf.get(i);
+    if (gi && gi.g.from === i) {
+      const col = COLORS[gi.k % COLORS.length];
+      if (!gn) {
+        gn = el("div", "gname", `<span class="tag"></span><input spellcheck="false" placeholder="nome file">`);
+        const inp = gn.querySelector("input");
+        inp.oninput = () => S.cutNames.set(+gn.dataset.gid, inp.value);
+        inp.onclick = ev => ev.stopPropagation();
+        c.append(gn);
+      }
+      gn.dataset.gid = gi.g.id;
+      gn.querySelector(".tag").textContent = `File ${gi.k + 1}`;
+      gn.querySelector(".tag").style.background = col;
+      const inp = gn.querySelector("input");
+      if (document.activeElement !== inp) inp.value = S.cutNames.get(gi.g.id) ?? defaultGroupName(gi.k, groups.length);
+    } else if (gn) gn.remove();
+    c.style.borderColor = gi ? COLORS[gi.k % COLORS.length] : "";
     if (grid.children[i] !== c) grid.insertBefore(c, grid.children[i] || null);
   });
 
@@ -1089,6 +1179,7 @@ function remove(ids) {
 const selIds = () => S.pages.filter(p => p.sel).map(p => p.id);
 
 $("#grid").addEventListener("click", e => {
+  if (S.cutting) return;
   const card = e.target.closest(".card"); if (!card) return;
   const id = +card.dataset.id;
   const btn = e.target.closest("button[data-act]");
@@ -1120,6 +1211,7 @@ $("#grid").addEventListener("dblclick", e => {
 let dragIds = null, dropTarget = null;
 function clearDrop() { if (dropTarget) dropTarget.el.classList.remove("drop-before", "drop-after"); dropTarget = null; }
 $("#grid").addEventListener("dragstart", e => {
+  if (S.cutting) { e.preventDefault(); return; }
   const card = e.target.closest(".card"); if (!card) return;
   const id = +card.dataset.id;
   const p = S.pages.find(x => x.id === id);
@@ -1220,23 +1312,34 @@ async function libDoc(doc) {
   }
   return doc.libDoc;
 }
-/* Pagina censurata: viene "fotografata" (200 dpi), i rettangoli neri sono dipinti sull'immagine e la pagina
-   originale è sostituita dall'immagine. Così sotto il nero non resta nulla: né testo, né OCR, né immagini. */
+/* Pagina "fotografata": serve per la censura (sotto il nero non resta nulla) e per le opzioni di
+   qualità ridotta o bianco e nero. La pagina originale viene sostituita da un'immagine. */
 const REDACT_DPI = 200;
+const needsRaster = p => !!(p.redacts?.length || S.quality || S.gray);
+function toGray(c) {
+  const g = document.createElement("canvas"); g.width = c.width; g.height = c.height;
+  const gx = g.getContext("2d"); gx.filter = "grayscale(1)"; gx.drawImage(c, 0, 0);
+  return g;
+}
 async function addRedactedPage(out, p, cache) {
   const d = S.docs.get(p.docId);
   const page = await d.pjs.getPage(p.index + 1);
   const base = page.getViewport({ scale: 1 });
-  const scale = Math.min(REDACT_DPI / 72, 4200 / Math.max(base.width, base.height));
+  const dpi = S.quality || REDACT_DPI;
+  const scale = Math.min(dpi / 72, 4200 / Math.max(base.width, base.height));
   const vp = page.getViewport({ scale });
-  const c = document.createElement("canvas");
+  let c = document.createElement("canvas");
   c.width = Math.ceil(vp.width); c.height = Math.ceil(vp.height);
   const ctx = c.getContext("2d");
   ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, c.width, c.height);
   await page.render({ canvasContext: ctx, viewport: vp }).promise;
-  ctx.fillStyle = "#000";
-  for (const r of p.redacts) ctx.fillRect(Math.floor(r.x * c.width) - 1, Math.floor(r.y * c.height) - 1, Math.ceil(r.w * c.width) + 2, Math.ceil(r.h * c.height) + 2);
-  const blob = await new Promise(res => c.toBlob(res, "image/jpeg", 0.9));
+  if (p.redacts?.length) {
+    ctx.fillStyle = "#000";
+    for (const r of p.redacts) ctx.fillRect(Math.floor(r.x * c.width) - 1, Math.floor(r.y * c.height) - 1, Math.ceil(r.w * c.width) + 2, Math.ceil(r.h * c.height) + 2);
+  }
+  if (S.gray) { const g = toGray(c); c.width = c.height = 0; c = g; }
+  const q = S.quality === 100 ? 0.72 : S.quality === 150 ? 0.82 : 0.9;
+  const blob = await new Promise(res => c.toBlob(res, "image/jpeg", q));
   c.width = c.height = 0;
   const img = await out.embedJpg(new Uint8Array(await blob.arrayBuffer()));
   const np = out.addPage([base.width, base.height]);
@@ -1247,7 +1350,7 @@ async function addRedactedPage(out, p, cache) {
 async function buildPdfOnce(pages, title) {
   const out = await PDFDocument.create();
   const byDoc = new Map();
-  for (const p of pages) { if (p.redacts?.length) continue; if (!byDoc.has(p.docId)) byDoc.set(p.docId, []); byDoc.get(p.docId).push(p.index); }
+  for (const p of pages) { if (needsRaster(p)) continue; if (!byDoc.has(p.docId)) byDoc.set(p.docId, []); byDoc.get(p.docId).push(p.index); }
   const copied = new Map();
   for (const [docId, idx] of byDoc) {
     const src = await libDoc(S.docs.get(docId));
@@ -1258,7 +1361,7 @@ async function buildPdfOnce(pages, title) {
   const cache = { f: {}, i: {} };
   txtDropped = false;
   for (const p of pages) {
-    if (p.redacts?.length) { await addRedactedPage(out, p, cache); continue; }
+    if (needsRaster(p)) { await addRedactedPage(out, p, cache); continue; }
     const pg = copied.get(p.docId + ":" + p.index);
     if (p.items?.length) {
       const page = await S.docs.get(p.docId).pjs.getPage(p.index + 1);
@@ -1402,21 +1505,20 @@ $("#lpOk").onclick = () => {
 $("#lpOff").onclick = () => { setProtect(null); $("#lockModal").classList.remove("on"); toast("Protezione rimossa: i PDF verranno salvati senza password."); };
 for (const id of ["#lp1", "#lp2"]) $(id).addEventListener("keydown", e => { if (e.key === "Enter") $("#lpOk").click(); });
 
-/* Avvisi prima di salvare pagine censurate */
+/* Avviso prima di salvare pagine che verranno trasformate in immagini (censura, qualità ridotta, bianco e nero) */
 const countRedacted = pages => pages.filter(p => p.redacts?.length).length;
-async function confirmRedactions(pages) {
-  const n = countRedacted(pages);
-  if (!n) return true;
-  const one = n === 1;
-  return !!(await dialog({ title: "Conferma censura", buttons: [{ label: "Annulla", value: false }, { label: "Salva con censure", primary: true, value: true }], html:
-    `<p>Stai salvando <b>${n} ${one ? "pagina censurata" : "pagine censurate"}</b>.</p>
-     <div class="warnbox danger"><b>Ciò che è sotto i rettangoli neri viene cancellato per sempre</b> dal file salvato: non esiste modo di recuperarlo.</div>
-     <ul class="bul">
-       <li>${one ? "La pagina censurata diventa" : "Le pagine censurate diventano"} un'<b>immagine</b>, come una scansione: <b>si perdono testo selezionabile, ricerca e OCR</b>, anche nelle zone non coperte.</li>
-       <li>Link e commenti su ${one ? "quella pagina" : "quelle pagine"} vengono rimossi.</li>
-       <li>Le altre pagine restano identiche all'originale.</li>
-     </ul>
-     <div class="warnbox"><b>Non sovrascrivere il PDF originale.</b> Salva con un nome nuovo e conserva l'originale: se lo sostituisci, i dati censurati non si potranno più recuperare.</div>` }));
+async function confirmSave(pages) {
+  const red = countRedacted(pages), opts = !!(S.quality || S.gray);
+  if (!red && !opts) return true;
+  const n = pages.filter(needsRaster).length, one = n === 1;
+  const why = [];
+  if (red) why.push(`<li><b>${red} ${red === 1 ? "pagina è censurata" : "pagine sono censurate"}</b>: ciò che è sotto i rettangoli neri viene <b>cancellato per sempre</b> e non è più recuperabile.</li>`);
+  if (S.quality) why.push(`<li>Hai scelto la qualità <b>${S.quality} dpi</b>.</li>`);
+  if (S.gray) why.push("<li>Hai scelto il salvataggio in <b>bianco e nero</b>.</li>");
+  return !!(await dialog({ title: red ? "Conferma censura" : "Conferma opzioni", buttons: [{ label: "Annulla", value: false }, { label: "Salva", primary: true, value: true }], html:
+    `<ul class="bul">${why.join("")}</ul>
+     <div class="warnbox danger">${one ? "Questa pagina diventa" : `${n} pagine diventano`} un'<b>immagine</b>, come una scansione: <b>si perdono testo selezionabile, ricerca e OCR</b>, oltre a link e commenti.${S.quality ? " Il peso può scendere molto per le scansioni, ma <b>aumentare</b> per un PDF di solo testo." : ""}</div>
+     ${red ? '<div class="warnbox"><b>Non sovrascrivere il PDF originale.</b> Salva con un nome nuovo e conservalo: i dati censurati non si potranno più recuperare.</div>' : ""}` }));
 }
 async function confirmNotOriginal(fileName) {
   const same = [...S.docs.values()].some(d => d.name.toLowerCase() === String(fileName).toLowerCase());
@@ -1430,7 +1532,7 @@ async function confirmNotOriginal(fileName) {
 /* Salva un file: con "Salva con nome" nativo se il browser lo supporta (Chrome/Edge), altrimenti download. */
 async function saveOne(pages, name) {
   const red = countRedacted(pages) > 0;
-  if (red && !(await confirmRedactions(pages))) return false;
+  if (!(await confirmSave(pages))) return false;
   if (red && !/censurat/i.test(name)) name = cleanName(name) + "_censurato";
   name = withPdf(name);
   let handle = null;
@@ -1446,13 +1548,13 @@ async function saveOne(pages, name) {
   busy("Creazione del PDF…"); await nextFrame();
   try {
     const bytes = await finalize(await buildPdf(pages, name.replace(/\.pdf$/i, "")));
-    const tail = S.protect ? " (protetto da password)" : "";
+    const tail = (S.protect ? "protetto da password · " : "") + fmtSize(bytes.length);
     if (handle) {
       const w = await handle.createWritable(); await w.write(bytes); await w.close();
-      toast(`Salvato: ${handle.name}${tail}`);
+      toast(`Salvato: ${handle.name} (${tail})`);
     } else {
       download(bytes, name);
-      toast(`Scaricato: ${name}${tail}`);
+      toast(`Scaricato: ${name} (${tail})`);
     }
     return true;
   } catch (e) {
@@ -1462,124 +1564,6 @@ async function saveOne(pages, name) {
 
 $("#bSave").onclick = async () => { if (S.pages.length && await saveOne(S.pages, baseName())) S.dirty = false; };
 $("#bSaveSel").onclick = () => { const sel = S.pages.filter(p => p.sel); if (sel.length) saveOne(sel, baseName() + "_estratto"); };
-
-/* ---------------- divisione ---------------- */
-let parts = [];
-function computeParts() {
-  const mode = document.querySelector('input[name=smode]:checked').value;
-  const n = S.pages.length, base = baseName();
-  const err = $("#sErr"); err.textContent = "";
-  let groups = [];
-  if (mode === "each") groups = S.pages.map((_, i) => [i, i]);
-  else if (mode === "n") {
-    const k = Math.max(1, parseInt($("#sN").value, 10) || 0);
-    for (let i = 0; i < n; i += k) groups.push([i, Math.min(n, i + k) - 1]);
-  } else if (mode === "ranges") {
-    const txt = $("#sRanges").value.trim();
-    if (!txt) { err.textContent = "Scrivi gli intervalli, ad esempio: 1-3, 4-7, 8-"; }
-    for (const tok of txt.split(/[,;]+/).map(s => s.trim()).filter(Boolean)) {
-      const m = tok.match(/^(\d+)?\s*(-)?\s*(\d+)?$/);
-      if (!m || (!m[1] && !m[3])) { err.textContent = `Intervallo non valido: "${tok}"`; groups = []; break; }
-      let a = m[1] ? +m[1] : 1, b = m[2] ? (m[3] ? +m[3] : n) : a;
-      if (a < 1 || b > n || a > b) { err.textContent = `"${tok}" è fuori dalle pagine disponibili (1–${n}).`; groups = []; break; }
-      groups.push([a - 1, b - 1]);
-    }
-  } else if (mode === "src") {
-    let cur = null;
-    S.pages.forEach((p, i) => { if (cur && S.pages[cur[0]].docId === p.docId && cur[1] === i - 1) cur[1] = i; else { cur = [i, i]; groups.push(cur); } });
-  }
-  const pad = String(groups.length).length;
-  const seen = new Set();
-  parts = groups.map(([a, b], k) => {
-    let name;
-    if (mode === "src") name = cleanName(S.docs.get(S.pages[a].docId).name);
-    else if (mode === "each") name = `${base}_pag${String(a + 1).padStart(String(n).length, "0")}`;
-    else name = `${base}_parte${String(k + 1).padStart(pad, "0")}`;
-    if (countRedacted(S.pages.slice(a, b + 1))) name += "_censurato";
-    let nm = name, j = 2; while (seen.has(nm.toLowerCase())) nm = `${name}_${j++}`; seen.add(nm.toLowerCase());
-    return { from: a, to: b, name: nm };
-  });
-  drawParts();
-}
-function drawParts() {
-  const box = $("#sParts");
-  box.replaceChildren();
-  $("#sFolder").disabled = $("#sDownloadAll").disabled = !parts.length;
-  if (!parts.length) return;
-  box.append(el("h4", null, `Verranno creati ${parts.length} file — puoi rinominarli:`));
-  const show = parts.slice(0, 200);
-  show.forEach((pt, i) => {
-    const row = el("div", "part");
-    const inp = el("input", "field"); inp.value = pt.name; inp.spellcheck = false;
-    inp.oninput = () => { pt.name = inp.value; };
-    const pg = el("span", "pg", pt.from === pt.to ? `pag. ${pt.from + 1}` : `pag. ${pt.from + 1}–${pt.to + 1}`);
-    const b = el("button", "btn", "Salva"); b.title = "Salva solo questo file";
-    b.onclick = () => saveOne(S.pages.slice(pt.from, pt.to + 1), pt.name);
-    row.append(inp, pg, b); box.append(row);
-  });
-  if (parts.length > show.length) box.append(el("div", "pg", `…e altri ${parts.length - show.length} file`));
-}
-function openSplit() {
-  if (S.pages.length < 2) return;
-  $("#splitModal").classList.add("on");
-  $("#sFolder").hidden = !window.showDirectoryPicker;
-  $("#sLock").hidden = !S.protect;
-  $("#sDownloadAll").classList.toggle("primary", !window.showDirectoryPicker);
-  computeParts();
-}
-$("#bSplit").onclick = openSplit;
-document.querySelectorAll('input[name=smode]').forEach(r => r.onchange = computeParts);
-$("#sN").oninput = () => { document.querySelector('input[value=n]').checked = true; computeParts(); };
-$("#sRanges").oninput = () => { document.querySelector('input[value=ranges]').checked = true; computeParts(); };
-$("#sRanges").onfocus = () => { document.querySelector('input[value=ranges]').checked = true; computeParts(); };
-
-function uniqueNames() {
-  const seen = new Set();
-  return parts.map(pt => { let b = cleanName(pt.name), n = b, j = 2; while (seen.has(n.toLowerCase())) n = `${b}_${j++}`; seen.add(n.toLowerCase()); return n + ".pdf"; });
-}
-const partPages = () => parts.flatMap(pt => S.pages.slice(pt.from, pt.to + 1));
-$("#sFolder").onclick = async () => {
-  if (!(await confirmRedactions(partPages()))) return;
-  let dir;
-  try { dir = await window.showDirectoryPicker({ mode: "readwrite", id: "pdftool-split" }); }
-  catch (e) { if (e.name !== "AbortError") toast("Impossibile accedere alla cartella: " + e.message, true); return; }
-  const names = uniqueNames();
-  // controlla file già esistenti
-  const clash = [];
-  for (const n of names) { try { await dir.getFileHandle(n); clash.push(n); } catch { } }
-  if (clash.length) {
-    const red = countRedacted(partPages()) > 0;
-    const ok = await dialog({ title: "File già presenti", buttons: [{ label: "Annulla", value: false }, { label: "Sovrascrivi", primary: true, value: true }], html:
-      `<p>${clash.length === 1 ? "Un file con lo stesso nome esiste" : `${clash.length} file con lo stesso nome esistono`} già nella cartella (es. <b>${esc(clash[0])}</b>).</p>` +
-      (red ? `<div class="warnbox danger">Se tra questi c'è il PDF originale, verrà sostituito dalla versione censurata e i dati coperti andranno <b>persi per sempre</b>.</div>` : "<p>Vuoi sovrascriverli?</p>") });
-    if (!ok) return;
-  }
-  try {
-    for (let i = 0; i < parts.length; i++) {
-      busy(`Salvataggio ${i + 1} di ${parts.length}…`); await nextFrame();
-      const bytes = await finalize(await buildPdf(S.pages.slice(parts[i].from, parts[i].to + 1), names[i].replace(/\.pdf$/, "")));
-      const fh = await dir.getFileHandle(names[i], { create: true });
-      const w = await fh.createWritable(); await w.write(bytes); await w.close();
-    }
-    toast(`${parts.length} file salvati nella cartella "${dir.name}".`);
-    closeModals();
-  } catch (e) { console.error(e); toast("Errore durante il salvataggio: " + (e.message || e), true); }
-  finally { idle(); }
-};
-$("#sDownloadAll").onclick = async () => {
-  if (!(await confirmRedactions(partPages()))) return;
-  const names = uniqueNames();
-  try {
-    for (let i = 0; i < parts.length; i++) {
-      busy(`Creazione ${i + 1} di ${parts.length}…`); await nextFrame();
-      download(await finalize(await buildPdf(S.pages.slice(parts[i].from, parts[i].to + 1), names[i].replace(/\.pdf$/, ""))), names[i]);
-      await new Promise(r => setTimeout(r, 250));
-    }
-    toast(`${parts.length} file scaricati. Se il browser chiede il permesso per i download multipli, consentilo.`);
-    closeModals();
-  } catch (e) { console.error(e); toast("Errore: " + (e.message || e), true); }
-  finally { idle(); }
-};
 
 /* ---------------- timbri: libreria locale (IndexedDB) ----------------
    Le immagini restano solo in questo browser, su questo computer: non vengono mai inviate da nessuna parte.
@@ -1812,6 +1796,16 @@ function wrapLines(text, font, size, maxW) {
   }
   return out;
 }
+/* Versione in scala di grigi di un timbro (mantiene la trasparenza: PNG). */
+async function grayStamp(st) {
+  const bmp = await createImageBitmap(new Blob([st.bytes], { type: st.type }));
+  const c = document.createElement("canvas"); c.width = bmp.width; c.height = bmp.height;
+  const x = c.getContext("2d"); x.filter = "grayscale(1)"; x.drawImage(bmp, 0, 0); bmp.close?.();
+  const blob = await new Promise(r => c.toBlob(r, "image/png"));
+  c.width = c.height = 0;
+  return new Uint8Array(await blob.arrayBuffer());
+}
+const grayHex = h => { const n = parseInt(h.slice(1), 16), v = Math.round(0.299 * ((n >> 16) & 255) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)); return "#" + [v, v, v].map(x => x.toString(16).padStart(2, "0")).join(""); };
 const hexRgb = h => { const n = parseInt(h.slice(1), 16); return window.PDFLib.rgb(((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255); };
 async function getFont(out, it, cache) {
   const F = window.PDFLib.StandardFonts;
@@ -1837,9 +1831,10 @@ async function drawItems(out, pdfPage, p, map0, cache) {
     if (it.kind === "img") {
       const st = S.stamps.get(it.stampId);
       if (!st) continue;
-      if (!cache.i[it.stampId]) cache.i[it.stampId] = st.type === "image/png" ? await out.embedPng(st.bytes) : await out.embedJpg(st.bytes);
+      const ck = it.stampId + (S.gray ? "-g" : "");
+      if (!cache.i[ck]) cache.i[ck] = S.gray ? await out.embedPng(await grayStamp(st)) : st.type === "image/png" ? await out.embedPng(st.bytes) : await out.embedJpg(st.bytes);
       const A = map.pt(it.x, it.y + it.h);
-      pdfPage.drawImage(cache.i[it.stampId], { x: A.x, y: A.y, width: wPts, height: hPts, rotate: degrees(map.angle), opacity: it.opacity });
+      pdfPage.drawImage(cache.i[ck], { x: A.x, y: A.y, width: wPts, height: hPts, rotate: degrees(map.angle), opacity: it.opacity });
     } else {
       const font = await getFont(out, it, cache);
       const txt = sanitize(it.text);
@@ -1851,7 +1846,7 @@ async function drawItems(out, pdfPage, p, map0, cache) {
         const dx = it.align === "center" ? (wPts - tw) / 2 : it.align === "right" ? wPts - tw : 0;
         const yTop = i * it.size * 1.2 + asc;
         const A = map.pt(it.x + dx / map.w, it.y + yTop / map.h);
-        pdfPage.drawText(ln, { x: A.x, y: A.y, size: it.size, font, color: hexRgb(it.color), rotate: degrees(map.angle), opacity: it.opacity });
+        pdfPage.drawText(ln, { x: A.x, y: A.y, size: it.size, font, color: hexRgb(S.gray ? grayHex(it.color) : it.color), rotate: degrees(map.angle), opacity: it.opacity });
       });
     }
   }
@@ -1862,6 +1857,103 @@ function pageMapper(pjsPage) {
   const a = pt(0, 0), b = pt(1, 0);
   return { w: vp.width, h: vp.height, angle: Math.round(Math.atan2(b.y - a.y, b.x - a.x) * 180 / Math.PI), pt };
 }
+
+/* ---------------- divisione: tagli scelti sulle miniature ---------------- */
+function cutGroups() {
+  const g = []; let cur = null;
+  S.pages.forEach((p, i) => {
+    if (!cur || (i > 0 && S.cuts.has(p.id))) { cur = { from: i, to: i, id: p.id }; g.push(cur); }
+    else cur.to = i;
+  });
+  return g;
+}
+const defaultGroupName = (k, tot) => `${baseName()}_${String(k + 1).padStart(String(tot).length, "0")}`;
+function groupNames() {
+  const gs = cutGroups(), seen = new Set();
+  return gs.map((g, k) => {
+    let base = cleanName(S.cutNames.get(g.id) || defaultGroupName(k, gs.length));
+    if (countRedacted(S.pages.slice(g.from, g.to + 1)) && !/censurat/i.test(base)) base += "_censurato";
+    let n = base, j = 2; while (seen.has(n.toLowerCase())) n = `${base}_${j++}`; seen.add(n.toLowerCase());
+    return n + ".pdf";
+  });
+}
+function setCutting(on) {
+  S.cutting = on && S.pages.length > 1;
+  document.body.classList.toggle("cutting", S.cutting);
+  $("#cutbar").hidden = !S.cutting;
+  $("#bSplit").classList.toggle("locked", S.cutting);
+  if (S.cutting) {
+    S.pages.forEach(p => p.sel = false);
+    $("#cutFolder").hidden = !window.showDirectoryPicker;   // non disponibile su Firefox e Safari
+    $("#cutDl").classList.toggle("primary", !window.showDirectoryPicker);
+  }
+  render();
+}
+$("#bSplit").onclick = () => setCutting(!S.cutting);
+$("#cutDone").onclick = () => setCutting(false);
+$("#cutAll").onclick = () => { S.pages.forEach((p, i) => { if (i) S.cuts.add(p.id); }); render(); };
+$("#cutNone").onclick = () => { S.cuts.clear(); render(); };
+
+function fmtSize(n) { return n > 1048576 ? (n / 1048576).toFixed(1) + " MB" : Math.max(1, Math.round(n / 1024)) + " KB"; }
+
+async function saveParts(toFolder) {
+  const gs = cutGroups();
+  if (gs.length < 2 && !confirm("Non hai messo nessun taglio: verrà salvato un unico file. Continuare?")) return;
+  const pages = gs.flatMap(g => S.pages.slice(g.from, g.to + 1));
+  if (!(await confirmSave(pages))) return;
+  const names = groupNames();
+  let dir = null;
+  if (toFolder) {
+    try { dir = await window.showDirectoryPicker({ mode: "readwrite", id: "pdftool-split" }); }
+    catch (e) { if (e.name !== "AbortError") toast("Impossibile accedere alla cartella: " + e.message, true); return; }
+    const clash = [];
+    for (const n of names) { try { await dir.getFileHandle(n); clash.push(n); } catch { } }
+    if (clash.length) {
+      const red = countRedacted(pages) > 0;
+      const ok = await dialog({ title: "File già presenti", buttons: [{ label: "Annulla", value: false }, { label: "Sovrascrivi", primary: true, value: true }], html:
+        `<p>${clash.length === 1 ? "Un file con lo stesso nome esiste" : `${clash.length} file con lo stesso nome esistono`} già nella cartella (es. <b>${esc(clash[0])}</b>).</p>` +
+        (red ? `<div class="warnbox danger">Se tra questi c'è il PDF originale, verrà sostituito dalla versione censurata e i dati coperti andranno <b>persi per sempre</b>.</div>` : "<p>Vuoi sovrascriverli?</p>") });
+      if (!ok) return;
+    }
+  }
+  let total = 0;
+  try {
+    for (let i = 0; i < gs.length; i++) {
+      busy(`${toFolder ? "Salvataggio" : "Creazione"} ${i + 1} di ${gs.length}…`); await nextFrame();
+      const bytes = await finalize(await buildPdf(S.pages.slice(gs[i].from, gs[i].to + 1), names[i].replace(/\.pdf$/i, "")));
+      total += bytes.length;
+      if (dir) { const fh = await dir.getFileHandle(names[i], { create: true }); const w = await fh.createWritable(); await w.write(bytes); await w.close(); }
+      else { download(bytes, names[i]); await new Promise(r => setTimeout(r, 250)); }
+    }
+    toast(dir ? `${gs.length} file salvati nella cartella "${dir.name}" (${fmtSize(total)} in tutto).`
+      : `${gs.length} file scaricati (${fmtSize(total)} in tutto). Se il browser chiede il permesso per i download multipli, consentilo.`);
+    S.dirty = false;
+  } catch (e) { console.error(e); toast("Errore durante il salvataggio: " + (e.message || e), true); }
+  finally { idle(); }
+}
+$("#cutFolder").onclick = () => saveParts(true);
+$("#cutDl").onclick = () => saveParts(false);
+
+/* ---------------- opzioni di salvataggio: qualità e bianco e nero ---------------- */
+function optsLabel() {
+  const on = S.quality || S.gray;
+  $("#bOpts").classList.toggle("locked", !!on);
+  $("#bOpts").title = on ? `Opzioni attive: ${S.quality ? S.quality + " dpi" : "qualità originale"}${S.gray ? ", bianco e nero" : ""}` : "Opzioni di salvataggio: qualità e bianco e nero";
+  $("#optWarn").hidden = !on;
+}
+$("#bOpts").onclick = () => {
+  document.querySelector(`input[name=qmode][value="${S.quality}"]`).checked = true;
+  $("#optGray").checked = S.gray;
+  optsLabel();
+  $("#optModal").classList.add("on");
+};
+document.querySelectorAll("input[name=qmode]").forEach(r => r.onchange = () => { S.quality = +r.value; optsLabel(); });
+$("#optGray").onchange = e => { S.gray = e.target.checked; optsLabel(); };
+$("#optReset").onclick = () => {
+  S.quality = 0; S.gray = false;
+  document.querySelector('input[name=qmode][value="0"]').checked = true; $("#optGray").checked = false;
+  optsLabel(); $("#optModal").classList.remove("on");
+};
 
 /* ---------------- anteprima, censura ed elementi ---------------- */
 let pvId = null, pvTask = null, editMode = null, rdSel = null, rdWork = null, selItem = null, itWork = null;
@@ -2076,7 +2168,9 @@ $("#bUndo").onclick = undo;
 $("#bClear").onclick = () => {
   if (S.dirty && !confirm("Chiudere tutti i file? Le modifiche non salvate andranno perse.")) return;
   S.docs.forEach(d => { d.pjs.destroy(); d.port?.terminate(); }); S.docs.clear(); S.pages = []; S.undo = []; S.dirty = false;
-  $("#bUndo").disabled = true; $("#outName").value = ""; setProtect(null); selItem = null; render();
+  $("#bUndo").disabled = true; $("#outName").value = ""; setProtect(null); selItem = null;
+  S.cuts.clear(); S.cutNames.clear(); S.cutting = false; document.body.classList.remove("cutting"); $("#cutbar").hidden = true; $("#bSplit").classList.remove("locked");
+  render();
 };
 $("#outName").addEventListener("keydown", e => { if (e.key === "Enter") $("#bSave").click(); });
 
