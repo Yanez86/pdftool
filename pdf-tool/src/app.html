@@ -1,0 +1,2133 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval' blob:; worker-src blob:; style-src 'unsafe-inline'; img-src blob: data:; font-src data: blob:; connect-src blob: data:">
+<title>PDF Tool</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='5' y='2' width='22' height='28' rx='4' fill='%23e5484d'/%3E%3Cpath d='M11 12h10M11 17h10M11 22h6' stroke='white' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#f5f5f4; --surface:#ffffff; --surface-2:#fafaf9; --border:#e7e5e4; --border-strong:#d6d3d1;
+  --text:#1c1917; --muted:#78716c; --accent:#e5484d; --accent-hover:#d53d42; --accent-soft:#fdecec;
+  --sel:#2563eb; --sel-soft:rgba(37,99,235,.12); --shadow:0 1px 2px rgba(0,0,0,.05),0 4px 14px rgba(0,0,0,.06);
+  --shadow-lg:0 20px 50px rgba(0,0,0,.18); --radius:12px; color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#131312; --surface:#1c1b1a; --surface-2:#232220; --border:#2e2c2a; --border-strong:#3d3a37;
+    --text:#f2f0ee; --muted:#a19d98; --accent:#ef5a5f; --accent-hover:#f36c70; --accent-soft:rgba(239,90,95,.14);
+    --sel:#5b8cff; --sel-soft:rgba(91,140,255,.16); --shadow:0 1px 2px rgba(0,0,0,.4),0 4px 14px rgba(0,0,0,.3);
+    --shadow-lg:0 20px 50px rgba(0,0,0,.6); color-scheme:dark;
+  }
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased;display:flex;flex-direction:column}
+button,input{font:inherit;color:inherit}
+svg{display:block}
+
+/* ---------- header ---------- */
+header{display:flex;align-items:center;gap:12px;padding:12px 20px;background:var(--surface);border-bottom:1px solid var(--border);flex-wrap:wrap;position:sticky;top:0;z-index:20}
+.brand{display:flex;align-items:center;gap:10px;font-weight:650;font-size:16px;letter-spacing:-.01em;margin-right:4px}
+.brand .logo{width:30px;height:30px;border-radius:8px;background:var(--accent);display:grid;place-items:center;color:#fff}
+.badge{font-size:11.5px;font-weight:550;color:#15803d;background:rgba(22,163,74,.1);border-radius:999px;padding:3px 9px;display:inline-flex;align-items:center;gap:5px}
+@media (prefers-color-scheme:dark){.badge{color:#4ade80;background:rgba(74,222,128,.1)}}
+.spacer{flex:1}
+.btn{display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 14px;border-radius:9px;border:1px solid var(--border-strong);background:var(--surface);cursor:pointer;font-weight:550;white-space:nowrap;transition:background .12s,border-color .12s,opacity .12s}
+.btn:hover{background:var(--surface-2);border-color:var(--muted)}
+.btn:disabled{opacity:.45;cursor:default;pointer-events:none}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{background:var(--accent-hover);border-color:var(--accent-hover)}
+.btn.ghost{border-color:transparent;background:transparent}
+.btn.ghost:hover{background:var(--surface-2)}
+.btn.icon{padding:0;width:36px;justify-content:center}
+.btn.danger:hover{color:var(--accent);border-color:var(--accent)}
+.namebox{display:flex;align-items:center;height:36px;border:1px solid var(--border-strong);border-radius:9px;background:var(--surface);overflow:hidden;min-width:0}
+.namebox:focus-within{border-color:var(--sel);box-shadow:0 0 0 3px var(--sel-soft)}
+.namebox input{border:0;outline:0;background:transparent;padding:0 4px 0 12px;width:220px;min-width:80px;height:100%}
+.namebox span{color:var(--muted);padding-right:12px}
+
+/* ---------- toolbar ---------- */
+.toolbar{display:flex;align-items:center;gap:8px;padding:10px 20px;border-bottom:1px solid var(--border);background:var(--surface-2);flex-wrap:wrap;min-height:56px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;flex:1;min-width:0}
+.chip{display:inline-flex;align-items:center;gap:7px;height:30px;padding:0 6px 0 10px;border-radius:8px;background:var(--surface);border:1px solid var(--border);font-size:13px;max-width:280px}
+.chip .dot{width:9px;height:9px;border-radius:3px;flex:none}
+.chip .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chip .ct{color:var(--muted);font-size:12px;flex:none}
+.chip button{border:0;background:transparent;width:22px;height:22px;border-radius:6px;display:grid;place-items:center;cursor:pointer;color:var(--muted);flex:none}
+.chip button:hover{background:var(--surface-2);color:var(--accent)}
+.selinfo{color:var(--muted);font-size:13px;margin-right:4px;white-space:nowrap}
+.sep{width:1px;height:22px;background:var(--border-strong);margin:0 4px}
+
+/* ---------- grid ---------- */
+main{flex:1;overflow:auto;position:relative}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--tw,180px),1fr));gap:18px;padding:22px 20px 28px}
+/* modalità divisione */
+.cutbar{display:flex;align-items:center;gap:10px;padding:10px 20px;background:var(--accent-soft);border-bottom:1px solid var(--accent);flex-wrap:wrap}
+.cutbar .t{flex:1;min-width:200px;font-size:13px}
+.cutbar .t b{color:var(--text)}
+body.cutting .card{cursor:default}
+body.cutting .card .actions,body.cutting .card .check{display:none}
+.cut{position:absolute;top:0;bottom:0;left:-14px;width:20px;display:grid;place-items:center;cursor:pointer;z-index:3}
+.cut::before{content:"";position:absolute;top:8px;bottom:8px;width:0;border-left:2px dashed var(--border-strong)}
+.cut:hover::before{border-color:var(--accent)}
+.cut .ic{opacity:0;width:24px;height:24px;border-radius:50%;background:var(--surface);border:1px solid var(--border-strong);display:grid;place-items:center;color:var(--muted);box-shadow:var(--shadow);z-index:1}
+.cut:hover .ic{opacity:1;border-color:var(--accent);color:var(--accent)}
+.cut.on::before{border-left:3px solid var(--accent);top:0;bottom:0}
+.cut.on .ic{opacity:1;background:var(--accent);border-color:var(--accent);color:#fff}
+.gname{position:absolute;left:0;right:0;top:-34px;display:flex;align-items:center;gap:6px;z-index:2}
+.gname input{flex:1;min-width:0;height:28px;border:1px solid var(--border-strong);border-radius:8px;background:var(--surface);padding:0 8px;font-size:12px}
+.gname input:focus{outline:0;border-color:var(--sel);box-shadow:0 0 0 3px var(--sel-soft)}
+.gname .tag{font-size:10.5px;font-weight:650;border-radius:5px;padding:2px 6px;color:#fff;flex:none}
+body.cutting .grid{padding-top:44px;row-gap:46px}
+body.cutting .card{border-width:2px}
+.zoom{display:flex;align-items:center;gap:6px;color:var(--muted)}
+.zoom input[type=range]{width:96px;accent-color:var(--sel)}
+@media (max-width:640px){.zoom{display:none}}
+.card{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px 10px 8px;box-shadow:var(--shadow);cursor:pointer;user-select:none;transition:border-color .12s,box-shadow .12s,transform .12s,opacity .12s}
+.card:hover{border-color:var(--border-strong)}
+.card.sel{border-color:var(--sel);box-shadow:0 0 0 3px var(--sel-soft),var(--shadow)}
+.card.dragging{opacity:.35}
+.card.drop-before::before,.card.drop-after::after{content:"";position:absolute;top:6px;bottom:6px;width:4px;border-radius:4px;background:var(--sel)}
+.card.drop-before::before{left:-11px}
+.card.drop-after::after{right:-11px}
+.thumb{aspect-ratio:1/1;display:grid;place-items:center;background:var(--surface-2);border-radius:8px;overflow:hidden}
+.thumb canvas{background:#fff;display:block;width:100%;height:auto}
+.thumb .pgw{position:relative;box-shadow:0 1px 3px rgba(0,0,0,.18);transition:transform .2s ease;line-height:0}
+.rdl{position:absolute;inset:0;pointer-events:none;container-type:inline-size}
+.rdl i{position:absolute;background:#000}
+.redbadge{position:absolute;bottom:44px;left:16px;font-size:11px;font-weight:650;background:#111;color:#fff;border-radius:6px;padding:1px 7px;display:flex;align-items:center;gap:4px}
+.thumb .ph{width:60%;aspect-ratio:1/1.3;background:var(--border);border-radius:3px;animation:pulse 1.2s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.5}}
+.meta{display:flex;align-items:center;gap:6px;margin-top:8px;font-size:12.5px}
+.meta .num{font-weight:650}
+.meta .src{color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;text-align:right;font-size:11.5px}
+.meta .dot{width:8px;height:8px;border-radius:3px;flex:none}
+.check{position:absolute;top:16px;left:16px;width:22px;height:22px;border-radius:7px;border:2px solid var(--border-strong);background:var(--surface);display:grid;place-items:center;color:#fff;opacity:0;transition:opacity .12s}
+.card:hover .check,.card.sel .check{opacity:1}
+.card.sel .check{background:var(--sel);border-color:var(--sel)}
+.card:not(.sel) .check svg{visibility:hidden}
+.actions{position:absolute;top:14px;right:14px;display:flex;flex-direction:column;gap:4px;opacity:0;transition:opacity .12s}
+.card:hover .actions{opacity:1}
+.actions button{width:30px;height:30px;border-radius:8px;border:1px solid var(--border);background:var(--surface);display:grid;place-items:center;cursor:pointer;box-shadow:var(--shadow);color:var(--text)}
+.actions button:hover{border-color:var(--sel);color:var(--sel)}
+.actions button.del:hover{border-color:var(--accent);color:var(--accent)}
+.rotbadge{position:absolute;bottom:44px;right:16px;font-size:11px;font-weight:650;background:var(--sel);color:#fff;border-radius:6px;padding:1px 6px}
+@media (hover:none){.actions,.check{opacity:1}}
+
+/* ---------- empty state ---------- */
+.empty{position:absolute;inset:0;display:grid;place-items:center;padding:24px}
+.drop{width:min(560px,100%);border:2px dashed var(--border-strong);border-radius:20px;padding:48px 28px;text-align:center;background:var(--surface);cursor:pointer;transition:border-color .15s,background .15s}
+.drop:hover{border-color:var(--accent);background:var(--accent-soft)}
+.drop .big{width:64px;height:64px;border-radius:16px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;margin:0 auto 16px}
+.drop h2{margin:0 0 6px;font-size:20px;letter-spacing:-.01em}
+.drop p{margin:0;color:var(--muted)}
+.feats{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin-top:22px}
+.feats span{font-size:12px;border:1px solid var(--border);border-radius:999px;padding:3px 10px;color:var(--muted)}
+.appfoot{display:flex;align-items:center;gap:14px;padding:7px 20px;border-top:1px solid var(--border);background:var(--surface);font-size:12px;color:var(--muted);flex:none}
+.appfoot .by b{color:var(--text);font-weight:650}
+.appfoot .by .heart{color:var(--accent)}
+.hint{flex:1;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.linkbtn{border:0;background:transparent;color:var(--muted);cursor:pointer;padding:3px 8px;border-radius:6px;font-size:12px;white-space:nowrap;margin-left:auto}
+.linkbtn:hover{background:var(--surface-2);color:var(--text)}
+.linkbtn .new{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--accent);margin-left:5px;vertical-align:middle}
+.cl-ver{margin:0 0 18px}
+.cl-ver:last-child{margin-bottom:0}
+.cl-ver h4{margin:0 0 6px;font-size:14px;display:flex;align-items:baseline;gap:8px}
+.cl-ver h4 span{font-weight:500;color:var(--muted);font-size:12px}
+.cl-ver ul{margin:0;padding-left:0;list-style:none;display:grid;gap:5px}
+.cl-ver li{display:flex;gap:8px;align-items:baseline}
+.tag{font-size:10.5px;font-weight:650;border-radius:5px;padding:1px 6px;flex:none;text-transform:uppercase;letter-spacing:.03em}
+.tag.new{background:rgba(22,163,74,.12);color:#15803d}
+.tag.fix{background:rgba(234,88,12,.12);color:#c2410c}
+.tag.imp{background:var(--sel-soft);color:var(--sel)}
+@media (prefers-color-scheme:dark){.tag.new{color:#4ade80}.tag.fix{color:#fb923c}}
+.btn.locked{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.modal-bg.top{z-index:85}
+.modal.narrow{width:min(470px,100%)}
+.fl{display:grid;gap:5px;font-weight:600;font-size:13px;margin-bottom:12px}
+.fl .field{width:100%;font-weight:400;height:38px}
+.chk{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);cursor:pointer;margin-bottom:12px}
+.chk input{accent-color:var(--sel);margin:0}
+.muted{color:var(--muted)}
+.dlg-body p{margin:0 0 12px}
+.dlg-body p:last-child{margin-bottom:0}
+.warnbox{background:rgba(234,179,8,.12);border:1px solid rgba(234,179,8,.35);border-radius:10px;padding:10px 12px;font-size:13px;margin:0 0 12px}
+.warnbox:last-child{margin-bottom:0}
+.signers{display:grid;gap:6px;margin:0 0 12px}
+.signer{display:flex;gap:10px;align-items:center;border:1px solid var(--border);border-radius:10px;padding:9px 12px}
+.signer .ic{width:30px;height:30px;border-radius:8px;background:var(--sel-soft);color:var(--sel);display:grid;place-items:center;flex:none}
+.signer .who{font-weight:600}
+.signer .when{font-size:12px;color:var(--muted)}
+.chip .flag{display:grid;place-items:center;color:var(--muted);flex:none}
+.lockinfo{display:flex;gap:8px;align-items:center;margin-top:14px;font-size:13px;color:var(--accent);background:var(--accent-soft);border-radius:10px;padding:8px 12px}
+.hint kbd{font:11px ui-monospace,monospace;border:1px solid var(--border-strong);border-bottom-width:2px;border-radius:4px;padding:0 4px;background:var(--surface-2)}
+@media (max-width:760px){.hint{visibility:hidden}}
+
+/* ---------- overlays ---------- */
+.dropzone{position:fixed;inset:0;background:rgba(229,72,77,.1);border:3px dashed var(--accent);z-index:50;display:none;place-items:center;pointer-events:none}
+.dropzone.on{display:grid}
+.dropzone div{background:var(--surface);padding:16px 26px;border-radius:14px;box-shadow:var(--shadow-lg);font-weight:600;font-size:16px}
+.modal-bg{position:fixed;inset:0;background:rgba(10,10,10,.45);backdrop-filter:blur(3px);z-index:60;display:none;place-items:center;padding:20px}
+.modal-bg.on{display:grid}
+.modal{background:var(--surface);border-radius:16px;box-shadow:var(--shadow-lg);width:min(640px,100%);max-height:calc(100vh - 40px);display:flex;flex-direction:column;border:1px solid var(--border)}
+.modal header{position:static;border-radius:16px 16px 0 0;padding:16px 20px}
+.modal header h3{margin:0;font-size:16px}
+.modal .body{padding:18px 20px;overflow:auto}
+.modal footer{display:flex;gap:8px;justify-content:flex-end;padding:14px 20px;border-top:1px solid var(--border);flex-wrap:wrap}
+.opts{display:grid;gap:8px}
+.opt{display:flex;align-items:center;gap:10px;border:1px solid var(--border);border-radius:10px;padding:10px 12px;cursor:pointer}
+.opt:has(input:checked){border-color:var(--sel);background:var(--sel-soft)}
+.opt input[type=radio]{accent-color:var(--sel);margin:0}
+.opt .t{font-weight:600}
+.opt .d{color:var(--muted);font-size:12.5px}
+.opt input[type=number],.opt input[type=text],.field{height:32px;border:1px solid var(--border-strong);border-radius:8px;background:var(--surface);padding:0 10px;outline:0}
+.opt input[type=number]{width:72px}
+.opt input[type=text]{flex:1;min-width:120px}
+.field:focus,.opt input:focus{border-color:var(--sel);box-shadow:0 0 0 3px var(--sel-soft)}
+.err{color:var(--accent);font-size:13px;margin-top:10px;min-height:1em}
+.parts{margin-top:16px;display:grid;gap:6px}
+.parts h4{margin:0 0 4px;font-size:13px;color:var(--muted);font-weight:600}
+.part{display:flex;align-items:center;gap:8px}
+.part .field{flex:1;min-width:0}
+.part .pg{font-size:12px;color:var(--muted);width:110px;flex:none;text-align:right}
+.part .btn{height:32px}
+
+.preview .modal{width:min(1000px,100%);height:calc(100vh - 40px)}
+.pv-stage{flex:1;display:grid;place-items:center;overflow:auto;background:var(--surface-2);padding:16px}
+.pv-stage canvas{background:#fff;display:block}
+.pvwrap{position:relative;box-shadow:0 2px 12px rgba(0,0,0,.25);line-height:0;touch-action:none}
+.pvlayer{position:absolute;inset:0;container-type:inline-size}
+.pvlayer.edit{cursor:crosshair}
+.rd{position:absolute;background:#000}
+.pvlayer.edit .rd{cursor:move;outline:1px dashed rgba(255,255,255,.55);outline-offset:-3px}
+.pvlayer.edit .rd.sel{outline:2px solid var(--accent);outline-offset:1px}
+.rd .h,.rd .x{position:absolute;display:none}
+.pvlayer.edit .rd.sel .h,.pvlayer.edit .rd.sel .x{display:grid}
+.rd .h{right:-7px;bottom:-7px;width:14px;height:14px;background:#fff;border:2px solid var(--accent);border-radius:4px;cursor:nwse-resize}
+.rd .x{top:-11px;right:-11px;width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;place-items:center;cursor:pointer;border:2px solid #fff}
+.pvwarn{padding:10px 20px;background:rgba(234,179,8,.12);border-bottom:1px solid rgba(234,179,8,.35);font-size:13px;display:flex;gap:12px;align-items:flex-start}
+.pvwarn .t{flex:1}
+.pvwarn button{flex:none}
+.bul{margin:0 0 12px;padding-left:18px;display:grid;gap:4px}
+/* elementi sovrapposti: timbri e testo */
+.rdl i.ov,.rd.ov{background:none}
+.ov{position:absolute}
+.ov .in{position:absolute;top:50%;left:50%;overflow:hidden}
+.ov img{width:100%;height:100%;object-fit:fill;display:block}
+.ov .in>*{width:100%;height:100%}
+.ov .tx{width:100%;height:100%;white-space:pre-wrap;word-break:break-word;line-height:1.2;overflow:hidden}
+.pvlayer.items .ov{cursor:move;outline:1px dashed rgba(120,120,120,.8);outline-offset:2px}
+.pvlayer.items .ov.sel{outline:2px solid var(--sel);outline-offset:2px}
+.ov .h,.ov .x,.ov .e{position:absolute;display:none}
+.pvlayer.items .ov.sel .h,.pvlayer.items .ov.sel .x,.pvlayer.items .ov.sel .e{display:grid}
+.ov .h{right:-7px;bottom:-7px;width:14px;height:14px;background:#fff;border:2px solid var(--sel);border-radius:4px;cursor:nwse-resize}
+.ov .x{top:-11px;right:-11px;width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;place-items:center;cursor:pointer;border:2px solid #fff}
+.ov .e{top:-11px;right:15px;width:22px;height:22px;border-radius:50%;background:var(--sel);color:#fff;place-items:center;cursor:pointer;border:2px solid #fff}
+.stamps{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px}
+.stamp{border:1px solid var(--border);border-radius:10px;padding:8px;display:grid;gap:6px;cursor:pointer;background:var(--surface)}
+.stamp:hover{border-color:var(--sel);box-shadow:0 0 0 3px var(--sel-soft)}
+.stamp .im{height:80px;display:grid;place-items:center;background:repeating-conic-gradient(var(--surface-2) 0 25%,transparent 0 50%) 50%/16px 16px;border-radius:6px;overflow:hidden}
+.stamp .im img{max-width:100%;max-height:80px;object-fit:contain}
+.stamp .nm{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center}
+.stamp .row{display:flex;gap:4px;justify-content:center}
+.stamp .row button{border:0;background:transparent;color:var(--muted);cursor:pointer;border-radius:6px;width:26px;height:24px;display:grid;place-items:center}
+.stamp .row button:hover{background:var(--surface-2);color:var(--accent)}
+.emptybox{border:2px dashed var(--border-strong);border-radius:12px;padding:26px;text-align:center;color:var(--muted)}
+.frow{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px}
+.frow .fl{margin:0}
+.frow select,.frow input[type=number]{height:34px;border:1px solid var(--border-strong);border-radius:8px;background:var(--surface);padding:0 8px}
+.frow input[type=color]{height:34px;width:46px;border:1px solid var(--border-strong);border-radius:8px;background:var(--surface);padding:2px}
+.frow input[type=range]{accent-color:var(--sel);width:110px}
+.tgl{display:inline-flex;gap:0}
+.tgl button{height:34px;width:38px;border:1px solid var(--border-strong);background:var(--surface);cursor:pointer}
+.tgl button:first-child{border-radius:8px 0 0 8px}
+.tgl button:last-child{border-radius:0 8px 8px 0;border-left:0}
+.tgl button.on{background:var(--sel-soft);border-color:var(--sel);color:var(--sel)}
+#txtArea{width:100%;min-height:96px;border:1px solid var(--border-strong);border-radius:8px;padding:8px 10px;background:var(--surface);resize:vertical;font:inherit}
+.warnbox.danger{background:var(--accent-soft);border-color:var(--accent)}
+
+.busy{position:fixed;inset:0;z-index:80;display:none;place-items:center;background:rgba(10,10,10,.35)}
+.busy.on{display:grid}
+.busy div{background:var(--surface);border-radius:14px;padding:18px 24px;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow-lg);font-weight:550}
+.spin{width:20px;height:20px;border-radius:50%;border:3px solid var(--border-strong);border-top-color:var(--accent);animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.toasts{position:fixed;bottom:48px;right:18px;display:grid;gap:8px;z-index:90}
+.toast{background:var(--text);color:var(--bg);padding:10px 16px;border-radius:10px;box-shadow:var(--shadow-lg);font-size:13.5px;max-width:380px;animation:tin .18s ease-out}
+.toast.bad{background:var(--accent);color:#fff}
+@keyframes tin{from{transform:translateY(8px);opacity:0}}
+@media (max-width:640px){
+  header,.toolbar{padding-left:16px;padding-right:16px}
+  .grid{padding:16px;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:14px}
+  .namebox input{width:120px}
+  .btn .lbl{display:none}
+  .chips{flex-basis:100%}
+  .selinfo{flex:1}
+  .btn:not(.icon){padding:0 11px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand"><div class="logo"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M7 7h10M7 12h10M7 17h6"/></svg></div>PDF Tool</div>
+  <span class="badge" title="Nessun dato lascia il tuo computer: tutto viene elaborato localmente nel browser."><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>100% offline</span>
+  <div class="spacer"></div>
+  <button class="btn" id="bAdd" title="Aggiungi PDF o immagini JPG/PNG (puoi anche trascinarli)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span class="lbl">Aggiungi file</span></button>
+  <button class="btn" id="bSplit" disabled title="Dividi in più PDF"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.1 15.9M14.5 14.5 20 20M8.1 8.1 12 12"/></svg><span class="lbl">Dividi…</span></button>
+  <button class="btn icon" id="bOpts" title="Opzioni di salvataggio: qualità e bianco e nero"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 8h10M18 8h2M4 16h4M12 16h8"/><circle cx="16" cy="8" r="2.2"/><circle cx="10" cy="16" r="2.2"/></svg></button>
+  <button class="btn" id="bStamps" title="Libreria timbri: immagini da applicare sui PDF"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21h14M6 17h12l-1-3.5a2 2 0 0 0-2-1.5h-1l.8-4a2.8 2.8 0 1 0-5.6 0l.8 4H9a2 2 0 0 0-2 1.5z"/></svg><span class="lbl">Timbri</span></button>
+  <button class="btn icon" id="bLock" disabled title="Proteggi con password i PDF salvati"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></button>
+  <div class="namebox" title="Nome del file da salvare"><input id="outName" placeholder="nome-file" spellcheck="false" autocomplete="off"><span>.pdf</span></div>
+  <button class="btn primary" id="bSave" disabled title="Salva PDF (Ctrl+S)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg><span class="lbl" id="saveLbl">Salva PDF</span></button>
+</header>
+
+<div class="cutbar" id="cutbar" hidden>
+  <span class="t"><b>Modalità divisione.</b> Clicca sulle forbici tra le pagine per scegliere dove tagliare. Sopra ogni gruppo puoi scrivere il nome del file. Il trascinamento delle pagine è disattivato.</span>
+  <button class="btn" id="cutAll" title="Un file per ogni pagina">Taglia tutte</button>
+  <button class="btn" id="cutNone">Rimuovi tagli</button>
+  <div class="sep"></div>
+  <button class="btn" id="cutDone">Fine</button>
+  <button class="btn" id="cutDl">Scarica</button>
+  <button class="btn primary" id="cutFolder">Salva in una cartella…</button>
+</div>
+
+<div class="toolbar" id="toolbar" hidden>
+  <div class="chips" id="chips"></div>
+  <span class="selinfo" id="selInfo"></span>
+  <button class="btn ghost" id="bSelAll">Seleziona tutto</button>
+  <div class="sep"></div>
+  <button class="btn icon" id="bRotL" title="Ruota a sinistra (Maiusc+R)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg></button>
+  <button class="btn icon" id="bRotR" title="Ruota a destra (R)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg></button>
+  <button class="btn icon danger" id="bDel" title="Elimina pagine selezionate (Canc)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg></button>
+  <button class="btn" id="bSaveSel" title="Salva solo le pagine selezionate in un nuovo PDF">Estrai selezione</button>
+  <div class="sep"></div>
+  <button class="btn icon" id="bUndo" title="Annulla (Ctrl+Z)" disabled><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></button>
+  <div class="zoom" title="Dimensione delle miniature"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="6" height="6" rx="1.5"/></svg><input type="range" id="zoom" min="120" max="340" step="20" value="180"></div>
+  <div class="sep"></div>
+  <button class="btn icon" id="bClear" title="Chiudi tutto"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+</div>
+
+<main id="main">
+  <div class="empty" id="empty">
+    <div class="drop" id="dropCard" role="button" tabindex="0">
+      <div class="big"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M12 11v6M9 14l3-3 3 3"/></svg></div>
+      <h2>Trascina qui PDF o immagini</h2>
+      <p>oppure clicca per sceglierli dal computer · PDF, P7M, JPG, PNG</p>
+      <div class="feats"><span>Elimina pagine</span><span>Ruota</span><span>Riordina</span><span>Unisci</span><span>Dividi</span><span>Rinomina</span><span>Foto → PDF</span></div>
+    </div>
+  </div>
+  <div class="grid" id="grid"></div>
+</main>
+<footer class="appfoot">
+  <span class="by">made by <b>TheRealGibo</b></span>
+  <span class="hint" id="hint" hidden>Clic per selezionare · <kbd>Maiusc</kbd>+clic per un intervallo · trascina per riordinare · doppio clic per ingrandire · <kbd>Canc</kbd> elimina · <kbd>R</kbd> ruota · <kbd>Ctrl</kbd>+<kbd>Z</kbd> annulla · censura dall'anteprima</span>
+  <button class="linkbtn" id="bNews" title="Cosa c'è di nuovo">v<span id="appVer"></span> · Novità</button>
+</footer>
+
+<input type="file" id="stFile" accept="image/png,image/jpeg,.png,.jpg,.jpeg" multiple hidden>
+<input type="file" id="stJson" accept="application/json,.json" hidden>
+<input type="file" id="file" accept="application/pdf,.pdf,image/png,image/jpeg,.png,.jpg,.jpeg,.p7m,application/pkcs7-mime" multiple hidden>
+<div class="dropzone" id="dropzone"><div>Rilascia per aggiungere i PDF</div></div>
+
+<!-- opzioni di salvataggio -->
+<div class="modal-bg" id="optModal">
+  <div class="modal narrow" role="dialog" aria-modal="true" aria-labelledby="optTitle">
+    <header><h3 id="optTitle">Opzioni di salvataggio</h3><div class="spacer"></div><button class="btn ghost icon" data-close title="Chiudi"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></header>
+    <div class="body">
+      <div class="opts">
+        <label class="opt"><input type="radio" name="qmode" value="0" checked><div><div class="t">Qualità originale</div><div class="d">Nessuna perdita: pagine copiate così come sono</div></div></label>
+        <label class="opt"><input type="radio" name="qmode" value="200"><div><div class="t">Alta · 200 dpi</div><div class="d">Ottima per stampa e lettura</div></div></label>
+        <label class="opt"><input type="radio" name="qmode" value="150"><div><div class="t">Media · 150 dpi</div><div class="d">Buon compromesso per email</div></div></label>
+        <label class="opt"><input type="radio" name="qmode" value="100"><div><div class="t">Bassa · 100 dpi</div><div class="d">Il più leggero, va bene a schermo</div></div></label>
+      </div>
+      <label class="chk" style="margin:14px 0 0"><input type="checkbox" id="optGray">Salva in bianco e nero (scala di grigi)</label>
+      <div class="warnbox" id="optWarn" hidden><b>Attenzione:</b> con qualità ridotta o bianco e nero ogni pagina viene trasformata in un'immagine. Si perdono <b>testo selezionabile, ricerca e OCR</b>, oltre a link e commenti. Il peso scende molto per le scansioni, ma può <b>aumentare</b> per un PDF di solo testo.</div>
+      <p class="muted" style="font-size:12.5px;margin:12px 0 0">Le opzioni valgono per tutti i salvataggi finché non le riporti su "Qualità originale".</p>
+    </div>
+    <footer><button class="btn" id="optReset" style="margin-right:auto">Riporta all'originale</button><button class="btn primary" data-close>Fatto</button></footer>
+  </div>
+</div>
+
+<!-- preview -->
+<div class="modal-bg preview" id="pvModal">
+  <div class="modal" role="dialog" aria-modal="true">
+    <header>
+      <h3 id="pvTitle">Pagina</h3><div class="spacer"></div>
+      <button class="btn icon" id="pvPrev" title="Precedente (←)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
+      <button class="btn icon" id="pvNext" title="Successiva (→)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
+      <div class="sep"></div>
+      <button class="btn icon" id="pvRotL" title="Ruota a sinistra"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg></button>
+      <button class="btn icon" id="pvRotR" title="Ruota a destra"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg></button>
+      <button class="btn" id="pvStamp" title="Applica un timbro su questa pagina"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21h14M6 17h12l-1-3.5a2 2 0 0 0-2-1.5h-1l.8-4a2.8 2.8 0 1 0-5.6 0l.8 4H9a2 2 0 0 0-2 1.5z"/></svg><span class="lbl">Timbro</span></button>
+      <button class="btn" id="pvText" title="Inserisci un blocco di testo"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6V4h14v2M12 4v16M9 20h6"/></svg><span class="lbl">Testo</span></button>
+      <button class="btn" id="pvRedact" title="Censura: copri con rettangoli neri le parti da nascondere (C)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="8" rx="1.5" fill="currentColor"/><path d="M3 4h10M3 20h14"/></svg><span class="lbl">Censura</span></button>
+      <button class="btn icon danger" id="pvDel" title="Elimina pagina"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg></button>
+      <div class="sep"></div>
+      <button class="btn ghost icon" data-close title="Chiudi (Esc)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </header>
+    <div class="pvwarn" id="pvWarn" hidden><div class="t"><b>Modalità censura.</b> Trascina sulla pagina per coprire una zona. Clic su un rettangolo per spostarlo o ridimensionarlo, <kbd>Canc</kbd> per eliminarlo, <kbd>Ctrl</kbd>+<kbd>Z</kbd> per annullare.<br>Al salvataggio questa pagina diventerà un'<b>immagine</b>: <b>si perdono testo selezionabile, ricerca e OCR</b>, e ciò che è sotto i rettangoli viene <b>cancellato per sempre</b>.</div><button class="btn" id="pvRdClear" style="height:30px">Rimuovi tutte</button></div>
+    <div class="pv-stage" id="pvStage"></div>
+  </div>
+</div>
+
+<!-- libreria timbri -->
+<div class="modal-bg" id="stModal">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="stTitle">
+    <header><h3 id="stTitle">Timbri</h3><div class="spacer"></div><button class="btn ghost icon" data-close title="Chiudi"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></header>
+    <div class="body">
+      <p class="muted" id="stHint" style="margin:0 0 14px"></p>
+      <div class="stamps" id="stList"></div>
+      <div class="emptybox" id="stEmpty" hidden>Nessun timbro salvato.<br>Aggiungi un'immagine PNG (meglio se con sfondo trasparente) o JPG.</div>
+    </div>
+    <footer>
+      <button class="btn" id="stExport" style="margin-right:auto">Esporta…</button>
+      <button class="btn" id="stImport">Importa…</button>
+      <button class="btn primary" id="stAdd">Aggiungi immagine…</button>
+    </footer>
+  </div>
+</div>
+
+<!-- testo -->
+<div class="modal-bg" id="txtModal">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="txtTitle">
+    <header><h3 id="txtTitle">Testo</h3><div class="spacer"></div><button class="btn ghost icon" data-close title="Chiudi"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></header>
+    <div class="body">
+      <label class="fl">Testo<textarea id="txtArea" spellcheck="false" placeholder="Scrivi qui…"></textarea></label>
+      <div class="frow">
+        <label class="fl">Carattere<select id="txtFont"><option value="Helvetica">Helvetica</option><option value="Times">Times</option><option value="Courier">Courier</option></select></label>
+        <div class="tgl"><button id="txtB" title="Grassetto" style="font-weight:800">G</button><button id="txtI" title="Corsivo" style="font-style:italic">C</button></div>
+        <label class="fl">Dimensione<input type="number" id="txtSize" min="4" max="200" step="1" value="14"></label>
+        <label class="fl">Colore<input type="color" id="txtColor" value="#000000"></label>
+        <label class="fl">Allineamento<select id="txtAlign"><option value="left">Sinistra</option><option value="center">Centro</option><option value="right">Destra</option></select></label>
+        <label class="fl">Opacità <span id="txtOpV" class="muted"></span><input type="range" id="txtOp" min="10" max="100" step="5" value="100"></label>
+      </div>
+      <p class="muted" style="font-size:12.5px;margin:0">Il testo resta vero testo nel PDF: selezionabile e ricercabile. Accenti e simboli europei sono supportati; emoji e alfabeti non latini no.</p>
+      <div class="err" id="txtErr"></div>
+    </div>
+    <footer><button class="btn" data-close>Annulla</button><button class="btn primary" id="txtOk">Inserisci</button></footer>
+  </div>
+</div>
+
+<!-- protezione con password -->
+<div class="modal-bg" id="lockModal">
+  <div class="modal narrow" role="dialog" aria-modal="true" aria-labelledby="lockTitle">
+    <header><h3 id="lockTitle">Proteggi con password</h3><div class="spacer"></div><button class="btn ghost icon" data-close title="Chiudi"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></header>
+    <div class="body">
+      <p class="muted" style="margin:0 0 14px">I PDF salvati chiederanno questa password per essere aperti. Vale per ogni salvataggio: Salva, Estrai selezione e Dividi.</p>
+      <label class="fl">Password<input type="password" class="field" id="lp1" autocomplete="new-password"></label>
+      <label class="fl">Ripeti la password<input type="password" class="field" id="lp2" autocomplete="new-password"></label>
+      <label class="chk"><input type="checkbox" id="lpShow">Mostra password</label>
+      <div class="warnbox"><b>Attenzione:</b> se dimentichi la password il file non si potrà più aprire. Il programma non la memorizza da nessuna parte.</div>
+      <div class="err" id="lpErr"></div>
+    </div>
+    <footer>
+      <button class="btn danger" id="lpOff" style="margin-right:auto">Rimuovi protezione</button>
+      <button class="btn" data-close>Annulla</button>
+      <button class="btn primary" id="lpOk">Proteggi</button>
+    </footer>
+  </div>
+</div>
+
+<!-- finestra generica (password in apertura, avvisi) -->
+<div class="modal-bg top" id="dlg">
+  <div class="modal narrow" role="dialog" aria-modal="true" aria-labelledby="dlgTitle">
+    <header><h3 id="dlgTitle"></h3></header>
+    <div class="body dlg-body" id="dlgBody"></div>
+    <footer id="dlgBtns"></footer>
+  </div>
+</div>
+
+<!-- changelog -->
+<div class="modal-bg" id="clModal">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="clTitle">
+    <header><h3 id="clTitle">Novità</h3><div class="spacer"></div><button class="btn ghost icon" data-close title="Chiudi"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></header>
+    <div class="body" id="clBody"></div>
+  </div>
+</div>
+
+<div class="busy" id="busy"><div><span class="spin"></span><span id="busyText">Elaborazione…</span></div></div>
+<div class="toasts" id="toasts"></div>
+
+<!--@@LIBS@@-->
+
+<script type="module">
+/* ============================================================
+   PDF Tool — tutto avviene nel browser, nessun dato esce dal PC.
+   ============================================================ */
+const { PDFDocument, degrees } = window.PDFLib;
+const pdfjsLib = globalThis.pdfjsLib;
+
+/* Worker di pdf.js da blob (funziona anche da file://). Il fetch nel worker è
+   bloccato: serve solo i moduli WASM incorporati, qualsiasi altra richiesta fallisce. */
+const WORKER_URL = URL.createObjectURL(new Blob([document.getElementById("pdfjs-worker").textContent], { type: "text/javascript" }));
+pdfjsLib.GlobalWorkerOptions.workerSrc = WORKER_URL;
+/* Un worker per documento: il PDF viene elaborato in background e l'interfaccia resta fluida.
+   Se il browser non lo permette, pdf.js lavora sul thread principale (più lento, ma funziona). */
+function makeWorker() {
+  try { const port = new Worker(WORKER_URL); return { pdfWorker: new pdfjsLib.PDFWorker({ port }), port }; }
+  catch (e) { console.warn("worker non disponibile:", e); return null; }
+}
+const PDFJS_OPTS = { wasmUrl: "embedded:/", useWorkerFetch: true, isEvalSupported: true, useSystemFonts: true, stopAtErrors: false };
+
+const $ = (s, r = document) => r.querySelector(s);
+const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const COLORS = ["#e5484d", "#3b82f6", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899", "#14b8a6", "#f97316", "#6366f1", "#84cc16"];
+const ICON = {
+  rotL: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>',
+  rotR: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>',
+  del: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>',
+  redact: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="8" rx="1.5" fill="currentColor"/><path d="M3 4h10M3 20h14"/></svg>',
+  zoom: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5M11 8v6M8 11h6"/></svg>',
+  check: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>',
+  x: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>',
+};
+
+/* ---------------- versione e novità ----------------
+   Per ogni nuova versione: aggiungere una voce IN CIMA a questa lista (e a CHANGELOG.md). */
+const CHANGELOG = [
+  { v: "1.5.0", date: "2026-09-23", items: [
+    ["new", "Divisione grafica: si clicca sulle forbici tra una pagina e l'altra per scegliere dove tagliare, e sopra ogni gruppo si scrive il nome del file"],
+    ["new", "Opzioni di salvataggio: qualità ridotta (200, 150 o 100 dpi) e salvataggio in bianco e nero, con avviso su ciò che si perde"],
+    ["new", "Cursore per ingrandire e rimpicciolire le miniature, con la dimensione ricordata"],
+    ["imp", "Al termine del salvataggio viene indicato il peso del file ottenuto"],
+  ]},
+  { v: "1.4.0", date: "2026-09-23", items: [
+    ["new", "Timbri: immagini PNG o JPG da applicare sui PDF, con spostamento e ridimensionamento; si possono applicare a più pagine selezionate in un colpo solo"],
+    ["new", "I timbri restano salvati in questo browser, solo su questo computer, e si possono esportare e importare con un file di backup"],
+    ["new", "Testo: blocchi di testo con carattere, grassetto, corsivo, dimensione, colore, allineamento e opacità; resta vero testo, selezionabile e ricercabile"],
+    ["imp", "PDF elaborati in background: l'interfaccia non si blocca più sui file grandi aperti da doppio clic"],
+  ]},
+  { v: "1.3.0", date: "2026-09-22", items: [
+    ["new", "Censura: nell'anteprima (o col pulsante sulla miniatura) si disegnano rettangoli neri da spostare, ridimensionare ed eliminare; Ctrl+Z annulla"],
+    ["new", "Censura sicura: al salvataggio la pagina censurata diventa un'immagine, quindi sotto il nero non resta nulla (né testo, né OCR, né immagini)"],
+    ["imp", "Avvisi chiari prima di salvare: le pagine censurate perdono testo selezionabile e OCR, e i dati coperti non sono recuperabili"],
+    ["imp", "I file con censure ricevono il suffisso \"_censurato\" e c'è un avviso se il nome scelto coincide con quello dell'originale"],
+  ]},
+  { v: "1.2.0", date: "2026-09-22", items: [
+    ["new", "Apertura dei PDF protetti da password: il programma chiede la password e, se è sbagliata, permette di riprovare"],
+    ["new", "Protezione con password dei PDF salvati (cifratura AES a 256 bit), dal pulsante con il lucchetto; vale anche per Estrai selezione e Dividi"],
+    ["new", "Se apri un PDF protetto, i file salvati mantengono la stessa password (si può cambiare o togliere)"],
+    ["new", "Apertura dei file firmati digitalmente .p7m, anche con firme multiple: il PDF viene estratto e vengono mostrati firmatari e data (non verificati)"],
+    ["new", "Per le fatture elettroniche .xml.p7m è possibile scaricare il file XML estratto"],
+  ]},
+  { v: "1.1.0", date: "2026-09-22", items: [
+    ["new", "Aggiunta di foto JPG e PNG come pagine: ognuna diventa una pagina A4 (verticale o orizzontale in base alla foto), ruotabile come le altre"],
+    ["new", "Le foto scattate col telefono vengono raddrizzate automaticamente"],
+    ["new", "Registro delle novità (questa finestra)"],
+    ["new", "Barra in fondo con la firma dell'autore"],
+  ]},
+  { v: "1.0.1", date: "2026-09-21", items: [
+    ["fix", "Risolto l'errore \"Expected instance of e\" nel salvataggio di PDF cifrati (bollette, estratti conto, documenti firmati)"],
+    ["imp", "Se un PDF non si riesce a leggere, il programma ne ricava una copia pulita e riprova"],
+  ]},
+  { v: "1.0.0", date: "2026-09-21", items: [
+    ["new", "Prima versione: elimina, ruota e riordina pagine, unisci più PDF, dividi un PDF, estrai la selezione, rinomina i file salvati"],
+    ["new", "Anteprima ingrandita, annulla (Ctrl+Z), tema chiaro e scuro, funzionamento 100% offline"],
+  ]},
+];
+const APP_VERSION = CHANGELOG[0].v;
+const TAGS = { new: "Nuovo", fix: "Correzione", imp: "Migliorato" };
+$("#appVer").textContent = APP_VERSION;
+try { if (localStorage.getItem("pdftool-seen") !== APP_VERSION) $("#bNews").insertAdjacentHTML("beforeend", '<span class="new"></span>'); } catch { }
+$("#bNews").onclick = () => {
+  $("#clBody").innerHTML = CHANGELOG.map(r => `<section class="cl-ver"><h4>Versione ${esc(r.v)} <span>${new Date(r.date + "T12:00").toLocaleDateString("it-IT", { day: "numeric", month: "long", year: "numeric" })}</span></h4><ul>${r.items.map(([t, txt]) => `<li><span class="tag ${t}">${TAGS[t]}</span><span>${esc(txt)}</span></li>`).join("")}</ul></section>`).join("");
+  $("#clModal").classList.add("on");
+  $("#bNews .new")?.remove();
+  try { localStorage.setItem("pdftool-seen", APP_VERSION); } catch { }
+};
+
+/* ---------------- stato ---------------- */
+const S = {
+  docs: new Map(),   // id -> { id, name, bytes, pjs, color, libDoc }
+  pages: [],         // [{ id, docId, index, rot, sel }]
+  undo: [],
+  cards: new Map(),  // page.id -> element
+  nextDoc: 1, nextPage: 1, nextItem: 1, anchor: null, dirty: false, protect: null,
+  stamps: new Map(), stampPick: false, stampsOff: false,
+  cutting: false, cuts: new Set(), cutNames: new Map(), quality: 0, gray: false, zoom: 180,
+};
+
+/* ---------------- utilità UI ---------------- */
+function toast(msg, bad = false) {
+  const t = el("div", "toast" + (bad ? " bad" : ""), esc(msg));
+  $("#toasts").append(t);
+  setTimeout(() => t.remove(), bad ? 6000 : 3500);
+}
+function busy(text) { $("#busyText").textContent = text || "Elaborazione…"; $("#busy").classList.add("on"); }
+function idle() { $("#busy").classList.remove("on"); }
+const nextFrame = () => new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));
+
+function cleanName(s) {
+  s = String(s || "").replace(/\.(pdf|png|jpe?g)$/i, "").replace(/[\\/:*?"<>|\u0000-\u001f]/g, "_").replace(/\s+/g, " ").trim().replace(/^\.+/, "");
+  return s || "documento";
+}
+const withPdf = s => cleanName(s) + ".pdf";
+const baseName = () => cleanName($("#outName").value || $("#outName").placeholder);
+
+/* ---------------- undo ---------------- */
+function snapshot() {
+  S.undo.push(S.pages.map(p => ({ ...p })));
+  if (S.undo.length > 60) S.undo.shift();
+  S.dirty = true;
+  $("#bUndo").disabled = false;
+}
+function undo() {
+  const prev = S.undo.pop();
+  if (!prev) return;
+  S.pages = prev;
+  $("#bUndo").disabled = !S.undo.length;
+  render();
+  if (pvId != null) { rdSel = null; drawPreview(); }
+}
+
+/* ---------------- caricamento ---------------- */
+const isPdfFile = f => /\.pdf$/i.test(f.name) || f.type === "application/pdf";
+const isImgFile = f => /\.(png|jpe?g)$/i.test(f.name) || /^image\/(png|jpeg)$/.test(f.type);
+
+/* Orientamento EXIF di un JPEG (1 = normale). Le foto del telefono spesso sono salvate "di lato"
+   con un'indicazione di rotazione che i PDF non leggono: in quel caso l'immagine viene raddrizzata. */
+function jpegOrientation(b) {
+  if (b[0] !== 0xff || b[1] !== 0xd8) return 1;
+  let o = 2;
+  while (o + 10 < b.length) {
+    if (b[o] !== 0xff) return 1;
+    const m = b[o + 1], len = (b[o + 2] << 8) | b[o + 3];
+    if (m === 0xe1 && b[o + 4] === 0x45 && b[o + 5] === 0x78 && b[o + 6] === 0x69 && b[o + 7] === 0x66) {
+      const t = o + 10, le = b[t] === 0x49;
+      const r16 = i => le ? b[i] | (b[i + 1] << 8) : (b[i] << 8) | b[i + 1];
+      const r32 = i => (le ? b[i] | (b[i + 1] << 8) | (b[i + 2] << 16) | (b[i + 3] << 24) : (b[i] << 24) | (b[i + 1] << 16) | (b[i + 2] << 8) | b[i + 3]) >>> 0;
+      const ifd = t + r32(t + 4), n = r16(ifd);
+      for (let k = 0; k < n; k++) { const e = ifd + 2 + k * 12; if (r16(e) === 0x0112) return r16(e + 8) || 1; }
+      return 1;
+    }
+    if (m === 0xda) return 1;
+    o += 2 + len;
+  }
+  return 1;
+}
+async function reencode(bytes, type, outType) {
+  const bmp = await createImageBitmap(new Blob([bytes], { type })); // applica l'orientamento EXIF
+  const c = document.createElement("canvas"); c.width = bmp.width; c.height = bmp.height;
+  const ctx = c.getContext("2d");
+  if (outType === "image/jpeg") { ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, c.width, c.height); }
+  ctx.drawImage(bmp, 0, 0); bmp.close?.();
+  const blob = await new Promise(r => c.toBlob(r, outType, 0.92));
+  return new Uint8Array(await blob.arrayBuffer());
+}
+/* Trasforma una foto in un PDF di una pagina A4 (orientata come la foto), con l'immagine centrata. */
+async function imageToPdf(file) {
+  let bytes = new Uint8Array(await file.arrayBuffer());
+  const isPng = bytes[0] === 0x89 && bytes[1] === 0x50;
+  const isJpg = bytes[0] === 0xff && bytes[1] === 0xd8;
+  if (!isPng && !isJpg) throw new Error("formato immagine non riconosciuto");
+  const out = await PDFDocument.create();
+  let img;
+  if (isJpg) {
+    if (jpegOrientation(bytes) !== 1) bytes = await reencode(bytes, "image/jpeg", "image/jpeg");
+    try { img = await out.embedJpg(bytes); } catch { img = await out.embedJpg(await reencode(bytes, "image/jpeg", "image/jpeg")); }
+  } else {
+    try { img = await out.embedPng(bytes); } catch { img = await out.embedPng(await reencode(bytes, "image/png", "image/png")); }
+  }
+  const [A, B] = [595.28, 841.89];
+  const land = img.width > img.height;
+  const W = land ? B : A, H = land ? A : B;
+  const k = Math.min(W / img.width, H / img.height);
+  const w = img.width * k, h = img.height * k;
+  const page = out.addPage([W, H]);
+  page.drawImage(img, { x: (W - w) / 2, y: (H - h) / 2, width: w, height: h });
+  out.setTitle(file.name.replace(/\.(png|jpe?g)$/i, ""));
+  out.setProducer("PDF Tool"); out.setCreator("PDF Tool");
+  return out.save();
+}
+
+/* ---------------- finestre di dialogo ---------------- */
+let dlgResolve = null;
+function dialog({ title, html, buttons, focus }) {
+  return new Promise(res => {
+    if (dlgResolve) dlgResolve(null);
+    dlgResolve = res;
+    $("#dlgTitle").textContent = title;
+    $("#dlgBody").innerHTML = html;
+    const box = $("#dlgBtns"); box.replaceChildren();
+    for (const b of buttons) {
+      const btn = el("button", "btn" + (b.primary ? " primary" : ""), esc(b.label));
+      btn.onclick = () => {
+        const v = typeof b.value === "function" ? b.value() : b.value;
+        if (v === undefined) return; // valore non valido: resta aperta
+        dlgResolve = null; $("#dlg").classList.remove("on"); res(v);
+      };
+      box.append(btn);
+    }
+    $("#dlg").classList.add("on");
+    ($(focus || "#dlgBtns .primary") || box.lastChild)?.focus();
+  });
+}
+function closeDialog() { if (dlgResolve) { const r = dlgResolve; dlgResolve = null; $("#dlg").classList.remove("on"); r(null); } }
+
+async function askPassword(fileName, wrong) {
+  const html = `<p>${wrong ? '<b style="color:var(--accent)">Password errata, riprova.</b><br>' : ""}Il file <b>${esc(fileName)}</b> è protetto da password.</p>
+    <label class="fl">Password<input type="password" class="field" id="dlgPw" autocomplete="off"></label>
+    <label class="chk" style="margin:0"><input type="checkbox" id="dlgPwShow">Mostra password</label>`;
+  const p = dialog({ title: "Password richiesta", html, focus: "#dlgPw", buttons: [
+    { label: "Annulla", value: null },
+    { label: "Apri", primary: true, value: () => $("#dlgPw").value || undefined },
+  ]});
+  $("#dlgPwShow").onchange = e => { $("#dlgPw").type = e.target.checked ? "text" : "password"; };
+  $("#dlgPw").onkeydown = e => { if (e.key === "Enter") $("#dlgBtns .primary").click(); };
+  return p;
+}
+
+/* Apre un PDF con pdf.js; se serve la password la chiede (anche più volte). */
+async function openPdf(bytes, name) {
+  const w = makeWorker();
+  const task = pdfjsLib.getDocument({ ...PDFJS_OPTS, data: bytes.slice(), worker: w?.pdfWorker });
+  let used = null, cancelled = false;
+  task.onPassword = async (update, reason) => {
+    const wasBusy = $("#busy").classList.contains("on"); idle();
+    const pw = await askPassword(name, reason === pdfjsLib.PasswordResponses.INCORRECT_PASSWORD);
+    if (wasBusy) busy("Apertura del file…");
+    if (pw == null) { cancelled = true; task.destroy(); return; }
+    used = pw; update(pw);
+  };
+  try { return { pjs: await task.promise, password: used, port: w?.port }; }
+  catch (e) { w?.port?.terminate(); if (cancelled) return { pjs: null }; throw e; }
+}
+
+/* ---------------- file firmati .p7m (CAdES) ----------------
+   Si legge la "busta" CMS/PKCS#7 e se ne estrae il documento contenuto, più nome del firmatario e data
+   dichiarata. La validità legale della firma NON viene verificata (richiederebbe una connessione). */
+const isP7mFile = f => /\.p7m$/i.test(f.name) || f.type === "application/pkcs7-mime";
+const P7M = (() => {
+  function read(b, pos, depth = 0) {
+    if (depth > 60) throw new Error("struttura troppo annidata");
+    const start = pos, t = b[pos++];
+    if (t === undefined) throw new Error("file troncato");
+    const cls = t >> 6, cons = !!(t & 0x20);
+    let num = t & 0x1f;
+    if (num === 0x1f) { num = 0; let x; do { x = b[pos++]; num = num * 128 + (x & 0x7f); } while (x & 0x80); }
+    let len = b[pos++], indef = false;
+    if (len === undefined) throw new Error("file troncato");
+    if (len === 0x80) indef = true;
+    else if (len & 0x80) { const n = len & 0x7f; if (n > 6) throw new Error("lunghezza non valida"); len = 0; for (let i = 0; i < n; i++) len = len * 256 + b[pos++]; }
+    const node = { cls, cons, num, start, cStart: pos, children: null };
+    if (cons) {
+      node.children = [];
+      if (indef) {
+        while (!(b[pos] === 0 && b[pos + 1] === 0)) { if (pos >= b.length) throw new Error("file troncato"); const c = read(b, pos, depth + 1); node.children.push(c); pos = c.end; }
+        node.cEnd = pos; node.end = pos + 2;
+      } else {
+        const end = pos + len; if (end > b.length) throw new Error("file troncato");
+        while (pos < end) { const c = read(b, pos, depth + 1); node.children.push(c); pos = c.end; }
+        node.cEnd = node.end = end;
+      }
+    } else {
+      if (indef) throw new Error("codifica non valida");
+      node.cEnd = node.end = pos + len;
+      if (node.end > b.length) throw new Error("file troncato");
+    }
+    return node;
+  }
+  const raw = (b, n) => b.subarray(n.cStart, n.cEnd);
+  function octets(b, n) {
+    if (!n.cons) return raw(b, n);
+    const parts = n.children.map(c => octets(b, c)), out = new Uint8Array(parts.reduce((s, x) => s + x.length, 0));
+    let p = 0; for (const x of parts) { out.set(x, p); p += x.length; }
+    return out;
+  }
+  function oid(b, n) {
+    const v = raw(b, n), out = [Math.floor(v[0] / 40), v[0] % 40]; let x = 0;
+    for (let i = 1; i < v.length; i++) { x = x * 128 + (v[i] & 0x7f); if (!(v[i] & 0x80)) { out.push(x); x = 0; } }
+    return out.join(".");
+  }
+  function str(b, n) {
+    const v = raw(b, n);
+    if (n.num === 30) { let s = ""; for (let i = 0; i + 1 < v.length; i += 2) s += String.fromCharCode((v[i] << 8) | v[i + 1]); return s; }
+    if (n.num === 20) return Array.from(v, c => String.fromCharCode(c)).join("");
+    return new TextDecoder().decode(v);
+  }
+  function time(b, n) {
+    const s = new TextDecoder().decode(raw(b, n));
+    const m = n.num === 23 ? s.match(/^(\d\d)(\d\d)(\d\d)(\d\d)(\d\d)(\d\d)?Z/) : s.match(/^(\d{4})(\d\d)(\d\d)(\d\d)(\d\d)(\d\d)?/);
+    if (!m) return null;
+    let y = +m[1]; if (n.num === 23) y += y < 50 ? 2000 : 1900;
+    return new Date(Date.UTC(y, +m[2] - 1, +m[3], +m[4], +m[5], +(m[6] || 0)));
+  }
+  const eq = (a, c) => a.length === c.length && a.every((x, i) => x === c[i]);
+  function subjectName(b, subj) {
+    const a = {};
+    for (const set of subj.children || []) for (const atv of set.children || []) {
+      const [o, v] = atv.children || []; if (!o || !v) continue;
+      try { a[oid(b, o)] = str(b, v); } catch { }
+    }
+    const full = [a["2.5.4.42"], a["2.5.4.4"]].filter(Boolean).join(" ");
+    return (a["2.5.4.3"] || full || a["2.5.4.10"] || "Firmatario sconosciuto").trim();
+  }
+  function maybeBase64(b) {
+    if (b[0] === 0x30) return b;
+    const txt = new TextDecoder("latin1").decode(b.subarray(0, Math.min(b.length, 64 * 1024 * 1024)));
+    const clean = txt.replace(/-----(BEGIN|END)[^-]*-----/g, "").replace(/\s+/g, "");
+    if (!/^[A-Za-z0-9+/]+=*$/.test(clean) || clean.length < 40) return b;
+    const bin = atob(clean), out = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+    return out;
+  }
+  function unwrapOnce(input) {
+    const b = maybeBase64(input);
+    if (b[0] !== 0x30) return null;
+    let root; try { root = read(b, 0); } catch { return null; }
+    const [t, wrap] = root.children || [];
+    if (!t || t.num !== 6 || oid(b, t) !== "1.2.840.113549.1.7.2" || !wrap?.children?.[0]) return null;
+    const ch = wrap.children[0].children;
+    const eci = ch.find((n, i) => i >= 2 && n.num === 16 && n.cls === 0);
+    const eWrap = eci?.children?.[1];
+    if (!eWrap) throw new Error("detached");
+    const content = octets(b, eWrap.children[0]);
+    // certificati e firmatari
+    const certs = [];
+    const certSet = ch.find(n => n.cls === 2 && n.num === 0);
+    for (const c of certSet?.children || []) {
+      try {
+        const tbs = c.children[0].children; let k = 0;
+        if (tbs[0].cls === 2) k = 1;
+        certs.push({ serial: raw(b, tbs[k]), name: subjectName(b, tbs[k + 4]) });
+      } catch { }
+    }
+    const signers = [];
+    const si = ch[ch.length - 1];
+    for (const s of (si && si.num === 17 ? si.children : [])) {
+      try {
+        const sid = s.children[1];
+        let cert = null;
+        if (sid.num === 16 && sid.children?.[1]) { const ser = raw(b, sid.children[1]); cert = certs.find(c => eq(c.serial, ser)); }
+        cert = cert || certs[0];
+        let when = null;
+        const attrs = s.children.find(n => n.cls === 2 && n.num === 0);
+        for (const a of attrs?.children || []) if (oid(b, a.children[0]) === "1.2.840.113549.1.9.5") when = time(b, a.children[1].children[0]);
+        signers.push({ name: cert ? cert.name : "Firmatario sconosciuto", when });
+      } catch { }
+    }
+    return { content, signers };
+  }
+  function unwrap(bytes) {
+    let content = bytes, signers = [], levels = 0;
+    for (; levels < 6; levels++) {
+      const r = unwrapOnce(content);
+      if (!r) break;
+      content = r.content; signers.push(...r.signers);
+    }
+    if (!levels) throw new Error("not-p7m");
+    return { content, signers };
+  }
+  function kind(c) {
+    const head = new TextDecoder("latin1").decode(c.subarray(0, 1024));
+    const i = head.indexOf("%PDF-");
+    if (i >= 0) return { type: "pdf", offset: i };
+    const t = head.replace(/^﻿|^ï»¿/, "").trimStart();
+    if (t.startsWith("<")) {
+      const probe = new TextDecoder().decode(c.subarray(0, 4096));
+      return { type: /FatturaElettronica/i.test(probe) ? "fattura" : "xml" };
+    }
+    return { type: "other" };
+  }
+  return { unwrap, kind };
+})();
+const fmtDate = d => d ? d.toLocaleString("it-IT", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "data non indicata";
+const SEAL = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="6"/><path d="m8.5 14-1.5 8 5-3 5 3-1.5-8"/></svg>';
+const LOCK = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
+
+async function showNotice(n) {
+  if (n.type === "signed") {
+    const list = n.signers.length ? n.signers.map(s => `<div class="signer"><span class="ic">${SEAL}</span><div><div class="who">${esc(s.name)}</div><div class="when">Firmato il ${esc(fmtDate(s.when))}</div></div></div>`).join("") : '<p class="muted">Nessun firmatario leggibile nel file.</p>';
+    await dialog({ title: "Documento firmato digitalmente", buttons: [{ label: "Ho capito", primary: true, value: true }], html:
+      `<p><b>${esc(n.name)}</b> è stato estratto dal file firmato.</p><div class="signers">${list}</div>
+       <p class="muted" style="font-size:13px">Nome e data sono letti dal file: la validità della firma <b>non viene verificata</b>. Per una verifica con valore legale usa un verificatore ufficiale (ad es. DiKe o ArubaSign).</p>
+       <div class="warnbox">Il PDF che salverai sarà una <b>copia senza firma digitale</b>: non avrà il valore legale del documento firmato originale.</div>` });
+  } else {
+    const fatt = n.type === "fattura", xml = fatt || n.type === "xml";
+    const outName = xml && !/\.xml$/i.test(n.name) ? n.name + ".xml" : n.name;
+    const r = await dialog({ title: fatt ? "Fattura elettronica" : "Contenuto non PDF", buttons: [
+      { label: "Chiudi", value: false }, { label: xml ? "Scarica XML" : "Scarica il contenuto", primary: true, value: true }], html:
+      `<p>Il file firmato <b>${esc(n.file)}</b> contiene ${fatt ? "una <b>fattura elettronica</b> in formato XML" : xml ? "un file <b>XML</b>" : "un file che <b>non è un PDF</b>"}: non ci sono pagine da mostrare o modificare.</p>
+       <p class="muted">Puoi comunque salvare il contenuto estratto (${esc(outName)}).</p>` });
+    if (r) {
+      const url = URL.createObjectURL(new Blob([n.content], { type: xml ? "application/xml" : "application/octet-stream" }));
+      const a = el("a"); a.href = url; a.download = outName; document.body.append(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 30000);
+    }
+  }
+}
+
+async function addFiles(fileList) {
+  const files = [...fileList].filter(f => isPdfFile(f) || isImgFile(f) || isP7mFile(f));
+  if (!files.length) { toast("Nessun file PDF, P7M o immagine JPG/PNG tra quelli selezionati.", true); return; }
+  busy(files.length > 1 ? `Apertura di ${files.length} file…` : "Apertura del file…");
+  let added = 0, lastName = null;
+  const firstLoad = S.pages.length === 0;
+  const before = S.pages.map(p => ({ ...p }));
+  const notices = [];
+  let protectFrom = null;
+  try {
+    for (const f of files) {
+      let name = f.name;
+      try {
+        let bytes, isImage = false, signers = null;
+        if (isP7mFile(f)) {
+          const r = P7M.unwrap(new Uint8Array(await f.arrayBuffer()));
+          name = f.name.replace(/(\.p7m)+$/i, "") || "documento";
+          const k = P7M.kind(r.content);
+          if (k.type !== "pdf") { notices.push({ type: k.type, file: f.name, name, content: r.content }); continue; }
+          bytes = k.offset ? r.content.slice(k.offset) : r.content;
+          if (!/\.pdf$/i.test(name)) name += ".pdf";
+          signers = r.signers;
+        } else if (isImgFile(f) && !isPdfFile(f)) { isImage = true; bytes = await imageToPdf(f); }
+        else bytes = new Uint8Array(await f.arrayBuffer());
+        const { pjs, password, port } = await openPdf(bytes, name);
+        if (!pjs) { toast(`Apertura di "${name}" annullata.`); continue; }
+        const id = S.nextDoc++;
+        const doc = { id, name, bytes, pjs, port, color: COLORS[(id - 1) % COLORS.length], libDoc: null, isImage, signers, password };
+        S.docs.set(id, doc);
+        for (let i = 0; i < pjs.numPages; i++) S.pages.push({ id: S.nextPage++, docId: id, index: i, rot: 0, sel: false });
+        added++; lastName = name;
+        if (signers) notices.push({ type: "signed", name, signers });
+        if (password && !S.protect && !protectFrom) protectFrom = { name, password };
+      } catch (e) {
+        console.error(e);
+        let msg;
+        if (e && e.name === "PasswordException") msg = `"${name}" è protetto da password e non può essere aperto.`;
+        else if (isP7mFile(f)) msg = e.message === "detached" ? `"${f.name}" contiene solo la firma, senza il documento: serve anche il file originale.` : `Impossibile leggere "${f.name}": non sembra un file firmato .p7m valido.`;
+        else if (isImgFile(f) && !isPdfFile(f)) msg = `Impossibile leggere l'immagine "${f.name}": il file sembra danneggiato.`;
+        else msg = `Impossibile aprire "${f.name}": il file sembra danneggiato o non è un PDF valido.`;
+        toast(msg, true);
+      }
+    }
+  } finally { idle(); }
+  if (added) {
+    S.undo.push(before); $("#bUndo").disabled = false; S.dirty = true;
+    if (firstLoad && !$("#outName").value) {
+      $("#outName").value = added === 1 ? cleanName(lastName) : (files.every(isImgFile) ? "foto" : "unione");
+    }
+    render();
+    if (!firstLoad) toast(added === 1 ? "File aggiunto in coda." : `${added} file aggiunti in coda.`);
+    if (protectFrom) {
+      setProtect(protectFrom.password);
+      toast(`"${protectFrom.name}" era protetto: i file salvati useranno la stessa password. Puoi cambiarla o toglierla dal lucchetto.`);
+    }
+  }
+  for (const n of notices) await showNotice(n);
+}
+
+/* ---------------- miniature ---------------- */
+let THUMB = 150;
+function setZoom(v, redraw = true) {
+  S.zoom = Math.max(120, Math.min(340, +v || 172));
+  document.documentElement.style.setProperty("--tw", S.zoom + "px");
+  $("#zoom").value = S.zoom;
+  THUMB = Math.round(S.zoom * 0.92);
+  try { localStorage.setItem("pdftool-zoom", S.zoom); } catch { }
+  if (redraw) scheduleThumbs();
+}
+let thumbTimer = null;
+function scheduleThumbs() { // ridisegna le miniature che sono diventate più grandi della loro risoluzione
+  clearTimeout(thumbTimer);
+  thumbTimer = setTimeout(() => {
+    for (const [id, card] of S.cards) if ((+card.dataset.res || 0) < THUMB - 4) { card.dataset.res = ""; io.observe(card); }
+  }, 350);
+}
+$("#zoom").oninput = e => setZoom(e.target.value);
+try { const z = +localStorage.getItem("pdftool-zoom"); if (z) setZoom(z, false); else setZoom(180, false); } catch { setZoom(180, false); }
+const io = new IntersectionObserver(entries => {
+  for (const e of entries) if (e.isIntersecting) { io.unobserve(e.target); drawThumb(e.target); }
+}, { root: $("#main"), rootMargin: "400px" });
+
+async function drawThumb(card) {
+  const p = S.pages.find(x => x.id === +card.dataset.id);
+  if (!p) return;
+  const doc = S.docs.get(p.docId);
+  try {
+    const page = await doc.pjs.getPage(p.index + 1);
+    const vp1 = page.getViewport({ scale: 1 });
+    const scale = THUMB / Math.max(vp1.width, vp1.height);
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const vp = page.getViewport({ scale: scale * dpr });
+    const c = document.createElement("canvas");
+    c.width = Math.ceil(vp.width); c.height = Math.ceil(vp.height);
+    card.dataset.res = THUMB;
+    const wrap = el("div", "pgw");
+    wrap.style.width = (vp.width / Math.max(vp.width, vp.height) * 94).toFixed(2) + "%";
+    await page.render({ canvasContext: c.getContext("2d"), viewport: vp }).promise;
+    wrap.append(c, el("div", "rdl"));
+    card.querySelector(".thumb").replaceChildren(wrap);
+    applyRot(card, S.pages.find(x => x.id === p.id) || p);
+  } catch (e) { console.warn(e); card.querySelector(".thumb").innerHTML = '<span style="color:var(--muted);font-size:12px">Anteprima non disponibile</span>'; }
+}
+function applyRot(card, p) {
+  const c = card.querySelector(".pgw");
+  if (c) c.style.transform = `rotate(${p.rot}deg)`;
+  // censure: rettangoli neri sulla miniatura (coordinate della pagina non ruotata dall'utente)
+  const l = card.querySelector(".rdl");
+  const rs = p.redacts || [];
+  if (l) l.innerHTML = rs.map(r => `<i style="left:${r.x * 100}%;top:${r.y * 100}%;width:${r.w * 100}%;height:${r.h * 100}%"></i>`).join("")
+    + (p.items || []).map(it => itemHTML(p, it, false, false, false)).join("");
+  let rb = card.querySelector(".redbadge");
+  if (rs.length) { if (!rb) { rb = el("span", "redbadge", ICON.redact.replace(/15/g, "11") + "Censurata"); rb.title = "Al salvataggio questa pagina diventerà un'immagine: testo e OCR non saranno più selezionabili"; card.append(rb); } }
+  else if (rb) rb.remove();
+  let b = card.querySelector(".rotbadge");
+  if (p.rot) { if (!b) { b = el("span", "rotbadge"); card.append(b); } b.textContent = `${p.rot}°`; }
+  else if (b) b.remove();
+}
+
+function makeCard(p) {
+  const card = el("div", "card");
+  card.dataset.id = p.id;
+  card.draggable = true;
+  card.innerHTML = `<div class="thumb"><div class="ph"></div></div>
+    <div class="check">${ICON.check}</div>
+    <div class="actions">
+      <button data-act="rotL" title="Ruota a sinistra">${ICON.rotL}</button>
+      <button data-act="rotR" title="Ruota a destra">${ICON.rotR}</button>
+      <button data-act="zoom" title="Ingrandisci">${ICON.zoom}</button>
+      <button data-act="redact" title="Censura parti della pagina">${ICON.redact}</button>
+      <button data-act="del" class="del" title="Elimina pagina">${ICON.del}</button>
+    </div>
+    <div class="meta"><span class="dot"></span><span class="num"></span><span class="src"></span></div>`;
+  io.observe(card);
+  return card;
+}
+
+/* ---------------- render ---------------- */
+function render() {
+  const grid = $("#grid");
+  const has = S.pages.length > 0;
+  $("#empty").hidden = has;
+  $("#toolbar").hidden = !has;
+  $("#hint").hidden = !has;
+  $("#bSave").disabled = !has;
+  $("#bLock").disabled = !has;
+  $("#bSplit").disabled = S.pages.length < 2;
+  if (S.cutting && S.pages.length < 2) setCutting(false);
+  for (const id of [...S.cuts]) if (!S.pages.some(p => p.id === id)) S.cuts.delete(id);
+  const groups = S.cutting ? cutGroups() : [];
+  const groupOf = new Map();
+  groups.forEach((g, k) => { for (let i = g.from; i <= g.to; i++) groupOf.set(i, { g, k }); });
+
+  const alive = new Set(S.pages.map(p => p.id));
+  for (const [id, c] of S.cards) if (!alive.has(id)) { io.unobserve(c); c.remove(); S.cards.delete(id); }
+
+  const multi = new Set(S.pages.map(p => p.docId)).size > 1;
+  S.pages.forEach((p, i) => {
+    let c = S.cards.get(p.id);
+    if (!c) { c = makeCard(p); S.cards.set(p.id, c); }
+    const d = S.docs.get(p.docId);
+    c.classList.toggle("sel", p.sel);
+    c.querySelector(".num").textContent = i + 1;
+    const dot = c.querySelector(".meta .dot");
+    dot.style.background = d.color; dot.style.display = multi ? "" : "none";
+    const src = c.querySelector(".src");
+    src.textContent = multi ? (d.isImage ? d.name : `${d.name.replace(/\.pdf$/i, "")} · p.${p.index + 1}`) : (p.index !== i ? `orig. p.${p.index + 1}` : "");
+    src.title = `${d.name}, pagina ${p.index + 1}`;
+    applyRot(c, p);
+    c.draggable = !S.cutting;
+    // modalità divisione: forbici tra le pagine e nome del file sul primo foglio di ogni gruppo
+    let cut = c.querySelector(".cut"), gn = c.querySelector(".gname");
+    if (S.cutting && i > 0) {
+      if (!cut) {
+        cut = el("div", "cut", `<span class="ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.1 15.9M14.5 14.5 20 20M8.1 8.1 12 12"/></svg></span>`);
+        cut.onclick = ev => { ev.stopPropagation(); S.cuts.has(p.id) ? S.cuts.delete(p.id) : S.cuts.add(p.id); render(); };
+        c.append(cut);
+      }
+      cut.classList.toggle("on", S.cuts.has(p.id));
+      cut.title = S.cuts.has(p.id) ? "Togli il taglio" : "Taglia qui: la pagina inizia un nuovo file";
+    } else if (cut) cut.remove();
+    const gi = groupOf.get(i);
+    if (gi && gi.g.from === i) {
+      const col = COLORS[gi.k % COLORS.length];
+      if (!gn) {
+        gn = el("div", "gname", `<span class="tag"></span><input spellcheck="false" placeholder="nome file">`);
+        const inp = gn.querySelector("input");
+        inp.oninput = () => S.cutNames.set(+gn.dataset.gid, inp.value);
+        inp.onclick = ev => ev.stopPropagation();
+        c.append(gn);
+      }
+      gn.dataset.gid = gi.g.id;
+      gn.querySelector(".tag").textContent = `File ${gi.k + 1}`;
+      gn.querySelector(".tag").style.background = col;
+      const inp = gn.querySelector("input");
+      if (document.activeElement !== inp) inp.value = S.cutNames.get(gi.g.id) ?? defaultGroupName(gi.k, groups.length);
+    } else if (gn) gn.remove();
+    c.style.borderColor = gi ? COLORS[gi.k % COLORS.length] : "";
+    if (grid.children[i] !== c) grid.insertBefore(c, grid.children[i] || null);
+  });
+
+  // chip dei file
+  const counts = new Map();
+  S.pages.forEach(p => counts.set(p.docId, (counts.get(p.docId) || 0) + 1));
+  const chips = $("#chips");
+  chips.replaceChildren();
+  for (const [id, n] of counts) {
+    const d = S.docs.get(id);
+    const ch = el("div", "chip", `<span class="dot" style="background:${d.color}"></span><span class="nm" title="${esc(d.name)}">${esc(d.name)}</span>${d.signers ? `<span class="flag" title="${esc("Firmato digitalmente (firma non verificata): " + (d.signers.map(x => x.name).join(", ") || "firmatario non leggibile"))}">${SEAL}</span>` : ""}${d.password ? `<span class="flag" title="Il file originale era protetto da password">${LOCK}</span>` : ""}<span class="ct">${n} pag.</span><button title="Rimuovi questo file">${ICON.x}</button>`);
+    ch.querySelector("button").onclick = () => { snapshot(); S.pages = S.pages.filter(p => p.docId !== id); render(); };
+    chips.append(ch);
+  }
+  updateSel();
+}
+function updateSel() {
+  const n = S.pages.filter(p => p.sel).length;
+  const tot = S.pages.length;
+  $("#selInfo").textContent = n ? `${n} di ${tot} selezionate` : `${tot} ${tot === 1 ? "pagina" : "pagine"}`;
+  $("#bSelAll").textContent = n === tot && tot ? "Deseleziona" : "Seleziona tutto";
+  for (const id of ["#bRotL", "#bRotR", "#bDel", "#bSaveSel"]) $(id).disabled = !n;
+  for (const p of S.pages) S.cards.get(p.id)?.classList.toggle("sel", p.sel);
+}
+
+/* ---------------- azioni sulle pagine ---------------- */
+function rotate(ids, d) {
+  if (!ids.length) return;
+  snapshot();
+  for (const p of S.pages) if (ids.includes(p.id)) { p.rot = (((p.rot + d) % 360) + 360) % 360; applyRot(S.cards.get(p.id), p); }
+}
+function remove(ids) {
+  if (!ids.length) return;
+  snapshot();
+  S.pages = S.pages.filter(p => !ids.includes(p.id));
+  render();
+  toast(ids.length === 1 ? "Pagina eliminata. Ctrl+Z per annullare." : `${ids.length} pagine eliminate. Ctrl+Z per annullare.`);
+}
+const selIds = () => S.pages.filter(p => p.sel).map(p => p.id);
+
+$("#grid").addEventListener("click", e => {
+  if (S.cutting) return;
+  const card = e.target.closest(".card"); if (!card) return;
+  const id = +card.dataset.id;
+  const btn = e.target.closest("button[data-act]");
+  if (btn) {
+    const a = btn.dataset.act;
+    if (a === "rotL") rotate([id], -90);
+    if (a === "rotR") rotate([id], 90);
+    if (a === "del") remove([id]);
+    if (a === "zoom") openPreview(id);
+    if (a === "redact") openPreview(id, "redact");
+    return;
+  }
+  const idx = S.pages.findIndex(p => p.id === id);
+  if (e.shiftKey && S.anchor != null) {
+    const a = S.pages.findIndex(p => p.id === S.anchor);
+    if (a >= 0) { const [lo, hi] = a < idx ? [a, idx] : [idx, a]; for (let i = lo; i <= hi; i++) S.pages[i].sel = true; }
+  } else {
+    S.pages[idx].sel = !S.pages[idx].sel;
+    S.anchor = id;
+  }
+  updateSel();
+});
+$("#grid").addEventListener("dblclick", e => {
+  const card = e.target.closest(".card");
+  if (card && !e.target.closest("button")) openPreview(+card.dataset.id);
+});
+
+/* ---------------- drag & drop (riordino) ---------------- */
+let dragIds = null, dropTarget = null;
+function clearDrop() { if (dropTarget) dropTarget.el.classList.remove("drop-before", "drop-after"); dropTarget = null; }
+$("#grid").addEventListener("dragstart", e => {
+  if (S.cutting) { e.preventDefault(); return; }
+  const card = e.target.closest(".card"); if (!card) return;
+  const id = +card.dataset.id;
+  const p = S.pages.find(x => x.id === id);
+  dragIds = p.sel ? selIds() : [id];
+  e.dataTransfer.effectAllowed = "move";
+  e.dataTransfer.setData("text/x-pdftool", "1");
+  requestAnimationFrame(() => dragIds && dragIds.forEach(i => S.cards.get(i)?.classList.add("dragging")));
+});
+$("#grid").addEventListener("dragend", () => {
+  S.cards.forEach(c => c.classList.remove("dragging")); clearDrop(); dragIds = null;
+});
+$("#grid").addEventListener("dragover", e => {
+  if (!dragIds) return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect = "move";
+  let card = e.target.closest(".card");
+  let after;
+  if (card) {
+    const r = card.getBoundingClientRect();
+    after = e.clientX > r.left + r.width / 2;
+  } else {
+    // spazio vuoto: trova la card più vicina
+    let best = null, bd = Infinity;
+    for (const c of S.cards.values()) {
+      const r = c.getBoundingClientRect();
+      const dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2);
+      const d = dx * dx + dy * dy * 4;
+      if (d < bd) { bd = d; best = c; }
+    }
+    if (!best) return;
+    card = best; const r = card.getBoundingClientRect(); after = e.clientX > r.left + r.width / 2;
+  }
+  if (!dropTarget || dropTarget.el !== card || dropTarget.after !== after) {
+    clearDrop();
+    dropTarget = { el: card, after };
+    card.classList.add(after ? "drop-after" : "drop-before");
+  }
+  // autoscroll
+  const m = $("#main"), mr = m.getBoundingClientRect();
+  if (e.clientY < mr.top + 60) m.scrollTop -= 14; else if (e.clientY > mr.bottom - 60) m.scrollTop += 14;
+});
+$("#grid").addEventListener("drop", e => {
+  if (!dragIds || !dropTarget) return;
+  e.preventDefault(); e.stopPropagation();
+  const targetId = +dropTarget.el.dataset.id, after = dropTarget.after;
+  const moving = S.pages.filter(p => dragIds.includes(p.id));
+  const rest = S.pages.filter(p => !dragIds.includes(p.id));
+  let at;
+  if (dragIds.includes(targetId)) {
+    // rilasciato su se stesso: posizione dell'originale
+    at = rest.findIndex(p => S.pages.indexOf(p) > S.pages.findIndex(q => q.id === targetId));
+    if (at < 0) at = rest.length;
+  } else {
+    at = rest.findIndex(p => p.id === targetId) + (after ? 1 : 0);
+  }
+  const next = [...rest.slice(0, at), ...moving, ...rest.slice(at)];
+  clearDrop();
+  if (next.some((p, i) => p !== S.pages[i])) { snapshot(); S.pages = next; render(); }
+});
+
+/* ---------------- file dal sistema operativo ---------------- */
+let dragDepth = 0;
+const isFileDrag = e => e.dataTransfer && [...e.dataTransfer.types].includes("Files");
+window.addEventListener("dragenter", e => { if (isFileDrag(e)) { dragDepth++; $("#dropzone").classList.add("on"); } });
+window.addEventListener("dragleave", e => { if (isFileDrag(e) && --dragDepth <= 0) { dragDepth = 0; $("#dropzone").classList.remove("on"); } });
+window.addEventListener("dragover", e => { if (isFileDrag(e)) e.preventDefault(); });
+window.addEventListener("drop", e => {
+  if (!isFileDrag(e)) return;
+  e.preventDefault(); dragDepth = 0; $("#dropzone").classList.remove("on");
+  if (e.dataTransfer.files.length) addFiles(e.dataTransfer.files);
+});
+$("#file").addEventListener("change", e => { if (e.target.files.length) addFiles(e.target.files); e.target.value = ""; });
+$("#bAdd").onclick = () => $("#file").click();
+$("#dropCard").onclick = () => $("#file").click();
+$("#dropCard").onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("#file").click(); } };
+
+/* ---------------- generazione PDF ---------------- */
+/* Molti PDF (bollette, estratti conto, documenti firmati…) sono cifrati anche senza password di
+   apertura: pdf-lib non sa decifrarli. In quel caso pdf.js, che li legge correttamente, ne produce una
+   copia decifrata (resta tutto in locale). Unire il documento a un PDF vuoto evita che pdf.js
+   riapplichi la cifratura; la pagina vuota finale non viene mai copiata. */
+let blankPdf = null;
+async function normalizedLib(doc) {
+  if (!blankPdf) { const b = await PDFDocument.create(); b.addPage([10, 10]); blankPdf = await b.save(); }
+  const bytes = await doc.pjs.extractPages([{ document: null }, { document: blankPdf.slice() }]);
+  if (!bytes) throw new Error("conversione non riuscita");
+  const L = await PDFDocument.load(bytes, { updateMetadata: false });
+  if (L.getPageCount() !== doc.pjs.numPages + 1) throw new Error("numero di pagine inatteso dopo la conversione");
+  doc.normalized = true;
+  return L;
+}
+async function libDoc(doc) {
+  if (!doc.libDoc) {
+    let L = null;
+    try { L = await PDFDocument.load(doc.bytes, { ignoreEncryption: true, updateMetadata: false }); } catch (e) { console.warn("pdf-lib:", e); }
+    if (!L || L.isEncrypted || L.getPageCount() !== doc.pjs.numPages) L = await normalizedLib(doc);
+    doc.libDoc = L;
+  }
+  return doc.libDoc;
+}
+/* Pagina "fotografata": serve per la censura (sotto il nero non resta nulla) e per le opzioni di
+   qualità ridotta o bianco e nero. La pagina originale viene sostituita da un'immagine. */
+const REDACT_DPI = 200;
+const needsRaster = p => !!(p.redacts?.length || S.quality || S.gray);
+function toGray(c) {
+  const g = document.createElement("canvas"); g.width = c.width; g.height = c.height;
+  const gx = g.getContext("2d"); gx.filter = "grayscale(1)"; gx.drawImage(c, 0, 0);
+  return g;
+}
+async function addRedactedPage(out, p, cache) {
+  const d = S.docs.get(p.docId);
+  const page = await d.pjs.getPage(p.index + 1);
+  const base = page.getViewport({ scale: 1 });
+  const dpi = S.quality || REDACT_DPI;
+  const scale = Math.min(dpi / 72, 4200 / Math.max(base.width, base.height));
+  const vp = page.getViewport({ scale });
+  let c = document.createElement("canvas");
+  c.width = Math.ceil(vp.width); c.height = Math.ceil(vp.height);
+  const ctx = c.getContext("2d");
+  ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, c.width, c.height);
+  await page.render({ canvasContext: ctx, viewport: vp }).promise;
+  if (p.redacts?.length) {
+    ctx.fillStyle = "#000";
+    for (const r of p.redacts) ctx.fillRect(Math.floor(r.x * c.width) - 1, Math.floor(r.y * c.height) - 1, Math.ceil(r.w * c.width) + 2, Math.ceil(r.h * c.height) + 2);
+  }
+  if (S.gray) { const g = toGray(c); c.width = c.height = 0; c = g; }
+  const q = S.quality === 100 ? 0.72 : S.quality === 150 ? 0.82 : 0.9;
+  const blob = await new Promise(res => c.toBlob(res, "image/jpeg", q));
+  c.width = c.height = 0;
+  const img = await out.embedJpg(new Uint8Array(await blob.arrayBuffer()));
+  const np = out.addPage([base.width, base.height]);
+  np.drawImage(img, { x: 0, y: 0, width: base.width, height: base.height });
+  if (p.items?.length) await drawItems(out, np, p, { w: base.width, h: base.height, angle: 0, pt: (u, v) => ({ x: u * base.width, y: (1 - v) * base.height }) }, cache);
+  if (p.rot) np.setRotation(degrees(p.rot));
+}
+async function buildPdfOnce(pages, title) {
+  const out = await PDFDocument.create();
+  const byDoc = new Map();
+  for (const p of pages) { if (needsRaster(p)) continue; if (!byDoc.has(p.docId)) byDoc.set(p.docId, []); byDoc.get(p.docId).push(p.index); }
+  const copied = new Map();
+  for (const [docId, idx] of byDoc) {
+    const src = await libDoc(S.docs.get(docId));
+    const uniq = [...new Set(idx)];
+    const res = await out.copyPages(src, uniq);
+    uniq.forEach((ix, k) => copied.set(docId + ":" + ix, res[k]));
+  }
+  const cache = { f: {}, i: {} };
+  txtDropped = false;
+  for (const p of pages) {
+    if (needsRaster(p)) { await addRedactedPage(out, p, cache); continue; }
+    const pg = copied.get(p.docId + ":" + p.index);
+    if (p.items?.length) {
+      const page = await S.docs.get(p.docId).pjs.getPage(p.index + 1);
+      await drawItems(out, pg, p, pageMapper(page), cache);
+    }
+    if (p.rot) pg.setRotation(degrees((((pg.getRotation().angle + p.rot) % 360) + 360) % 360));
+    out.addPage(pg);
+  }
+  if (txtDropped) toast("Alcuni caratteri del testo inserito non sono supportati dai caratteri PDF standard e sono stati sostituiti con \"?\".", true);
+  if (title) out.setTitle(title);
+  out.setProducer("PDF Tool");
+  out.setCreator("PDF Tool");
+  return out.save();
+}
+async function buildPdf(pages, title) {
+  try { return await buildPdfOnce(pages, title); }
+  catch (e) {
+    // pdf-lib non è riuscito a leggere un file: riprova passando dalla copia generata da pdf.js
+    const docs = [...new Set(pages.map(p => p.docId))].map(id => S.docs.get(id)).filter(d => !d.normalized);
+    if (!docs.length) throw e;
+    console.warn("pdf-lib ha fallito, uso la copia normalizzata:", e);
+    for (const d of docs) d.libDoc = await normalizedLib(d);
+    return await buildPdfOnce(pages, title);
+  }
+}
+
+function download(bytes, name) {
+  const url = URL.createObjectURL(new Blob([bytes], { type: "application/pdf" }));
+  const a = el("a"); a.href = url; a.download = name;
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 30000);
+}
+
+/* ---------------- protezione con password (AES-256, standard PDF 2.0) ----------------
+   pdf-lib non sa cifrare: la cifratura è implementata qui con le funzioni crittografiche del browser
+   (Web Crypto). Algoritmo: Standard Security Handler V5/R6 (ISO 32000-2), solo password di apertura. */
+const PdfCrypt = (() => {
+  const { PDFRawStream, PDFHexString, PDFString, PDFDict, PDFArray, PDFName, PDFNumber, PDFBool } = window.PDFLib;
+  const subtle = crypto.subtle;
+  const rnd = n => crypto.getRandomValues(new Uint8Array(n));
+  const cat = (...a) => { const o = new Uint8Array(a.reduce((s, x) => s + x.length, 0)); let p = 0; for (const x of a) { o.set(x, p); p += x.length; } return o; };
+  const hex = b => Array.from(b, x => x.toString(16).padStart(2, "0")).join("");
+  async function aesCbc(key, iv, data, pad) {
+    const k = await subtle.importKey("raw", key, "AES-CBC", false, ["encrypt"]);
+    const out = new Uint8Array(await subtle.encrypt({ name: "AES-CBC", iv }, k, data));
+    return pad ? out : out.slice(0, data.length); // senza padding: i primi blocchi CBC sono identici
+  }
+  async function hash2B(pw, salt, udata) { // ISO 32000-2, algoritmo 2.B
+    let K = new Uint8Array(await subtle.digest("SHA-256", cat(pw, salt, udata)));
+    for (let i = 0; ;) {
+      const unit = cat(pw, K, udata), K1 = new Uint8Array(unit.length * 64);
+      for (let j = 0; j < 64; j++) K1.set(unit, j * unit.length);
+      const E = await aesCbc(K.slice(0, 16), K.slice(16, 32), K1, false);
+      let sum = 0; for (let j = 0; j < 16; j++) sum += E[j];
+      K = new Uint8Array(await subtle.digest(["SHA-256", "SHA-384", "SHA-512"][sum % 3], E));
+      i++;
+      if (i >= 64 && E[E.length - 1] <= i - 32) break;
+    }
+    return K.slice(0, 32);
+  }
+  const pwBytes = p => new TextEncoder().encode(String(p).normalize("NFKC")).slice(0, 127);
+
+  async function encrypt(bytes, password) {
+    const { PDFDocument } = window.PDFLib;
+    const pw = pwBytes(password), none = new Uint8Array(0), zero = new Uint8Array(16);
+    const FK = rnd(32);
+    const uvs = rnd(8), uks = rnd(8), ovs = rnd(8), oks = rnd(8);
+    const U = cat(await hash2B(pw, uvs, none), uvs, uks);
+    const UE = await aesCbc(await hash2B(pw, uks, none), zero, FK, false);
+    const O = cat(await hash2B(pw, ovs, U), ovs, oks);
+    const OE = await aesCbc(await hash2B(pw, oks, U), zero, FK, false);
+    const P = -4; // tutti i permessi: si protegge solo l'apertura
+    const perms = new Uint8Array(16);
+    new DataView(perms.buffer).setInt32(0, P, true); perms.fill(0xff, 4, 8); perms.set([0x54, 0x61, 0x64, 0x62], 8); perms.set(rnd(4), 12);
+    const Perms = await aesCbc(FK, zero, perms, false);
+
+    const doc = await PDFDocument.load(bytes, { updateMetadata: false });
+    const ctx = doc.context;
+    const key = await subtle.importKey("raw", FK, "AES-CBC", false, ["encrypt"]);
+    const enc = async data => { const iv = rnd(16); return cat(iv, new Uint8Array(await subtle.encrypt({ name: "AES-CBC", iv }, key, data))); };
+    async function walk(o) {
+      if (o instanceof PDFString || o instanceof PDFHexString) return PDFHexString.of(hex(await enc(o.asBytes())));
+      if (o instanceof PDFArray) { for (let i = 0; i < o.size(); i++) { const v = o.get(i), n = await walk(v); if (n !== v) o.set(i, n); } return o; }
+      if (o instanceof PDFDict) { for (const [k, v] of o.entries()) { const n = await walk(v); if (n !== v) o.set(k, n); } return o; }
+      return o;
+    }
+    doc.catalog.set(PDFName.of("Extensions"), ctx.obj({ ADBE: { BaseVersion: "1.7", ExtensionLevel: 8 } }));
+    for (const [ref, obj] of ctx.enumerateIndirectObjects()) {
+      if (obj instanceof PDFRawStream) {
+        const type = obj.dict.get(PDFName.of("Type"));
+        if (type === PDFName.of("XRef") || type === PDFName.of("ObjStm")) { ctx.delete(ref); continue; }
+        await walk(obj.dict);
+        ctx.assign(ref, PDFRawStream.of(obj.dict, await enc(obj.contents)));
+      } else if (obj.dict && typeof obj.getContents === "function") {
+        await walk(obj.dict);
+        ctx.assign(ref, PDFRawStream.of(obj.dict, await enc(obj.getContents())));
+      } else {
+        const n = await walk(obj);
+        if (n !== obj) ctx.assign(ref, n);
+      }
+    }
+    const E = ctx.obj({ Filter: "Standard", V: 5, R: 6, Length: 256, P, StmF: "StdCF", StrF: "StdCF",
+      CF: { StdCF: { AuthEvent: "DocOpen", CFM: "AESV3", Length: 32 } } });
+    E.set(PDFName.of("EncryptMetadata"), PDFBool.True);
+    for (const [k, v] of [["O", O], ["U", U], ["OE", OE], ["UE", UE], ["Perms", Perms]]) E.set(PDFName.of(k), PDFHexString.of(hex(v)));
+    ctx.trailerInfo.Encrypt = ctx.register(E);
+    const id = PDFHexString.of(hex(rnd(16)));
+    ctx.trailerInfo.ID = ctx.obj([id, id]);
+    return doc.save({ useObjectStreams: false, updateFieldAppearances: false, addDefaultPage: false });
+  }
+  return { encrypt };
+})();
+
+function setProtect(pw) {
+  S.protect = pw || null;
+  const on = !!S.protect;
+  $("#bLock").classList.toggle("locked", on);
+  $("#bLock").title = on ? "Protezione con password attiva: clic per modificarla o toglierla" : "Proteggi con password i PDF salvati";
+  $("#saveLbl").textContent = on ? "Salva protetto" : "Salva PDF";
+}
+async function finalize(bytes) { return S.protect ? PdfCrypt.encrypt(bytes, S.protect) : bytes; }
+
+$("#bLock").onclick = () => {
+  $("#lp1").value = $("#lp2").value = S.protect || "";
+  $("#lpShow").checked = false; $("#lp1").type = $("#lp2").type = "password";
+  $("#lpErr").textContent = "";
+  $("#lpOff").hidden = !S.protect;
+  $("#lpOk").textContent = S.protect ? "Aggiorna" : "Proteggi";
+  $("#lockModal").classList.add("on");
+  $("#lp1").focus();
+};
+$("#lpShow").onchange = e => { $("#lp1").type = $("#lp2").type = e.target.checked ? "text" : "password"; };
+$("#lpOk").onclick = () => {
+  const a = $("#lp1").value, b = $("#lp2").value;
+  if (!a) { $("#lpErr").textContent = "Scrivi una password."; return; }
+  if (a !== b) { $("#lpErr").textContent = "Le due password non coincidono."; return; }
+  if (new TextEncoder().encode(a).length > 127) { $("#lpErr").textContent = "La password è troppo lunga (massimo circa 120 caratteri)."; return; }
+  setProtect(a); $("#lockModal").classList.remove("on");
+  toast("Protezione attiva: i PDF salvati chiederanno la password.");
+};
+$("#lpOff").onclick = () => { setProtect(null); $("#lockModal").classList.remove("on"); toast("Protezione rimossa: i PDF verranno salvati senza password."); };
+for (const id of ["#lp1", "#lp2"]) $(id).addEventListener("keydown", e => { if (e.key === "Enter") $("#lpOk").click(); });
+
+/* Avviso prima di salvare pagine che verranno trasformate in immagini (censura, qualità ridotta, bianco e nero) */
+const countRedacted = pages => pages.filter(p => p.redacts?.length).length;
+async function confirmSave(pages) {
+  const red = countRedacted(pages), opts = !!(S.quality || S.gray);
+  if (!red && !opts) return true;
+  const n = pages.filter(needsRaster).length, one = n === 1;
+  const why = [];
+  if (red) why.push(`<li><b>${red} ${red === 1 ? "pagina è censurata" : "pagine sono censurate"}</b>: ciò che è sotto i rettangoli neri viene <b>cancellato per sempre</b> e non è più recuperabile.</li>`);
+  if (S.quality) why.push(`<li>Hai scelto la qualità <b>${S.quality} dpi</b>.</li>`);
+  if (S.gray) why.push("<li>Hai scelto il salvataggio in <b>bianco e nero</b>.</li>");
+  return !!(await dialog({ title: red ? "Conferma censura" : "Conferma opzioni", buttons: [{ label: "Annulla", value: false }, { label: "Salva", primary: true, value: true }], html:
+    `<ul class="bul">${why.join("")}</ul>
+     <div class="warnbox danger">${one ? "Questa pagina diventa" : `${n} pagine diventano`} un'<b>immagine</b>, come una scansione: <b>si perdono testo selezionabile, ricerca e OCR</b>, oltre a link e commenti.${S.quality ? " Il peso può scendere molto per le scansioni, ma <b>aumentare</b> per un PDF di solo testo." : ""}</div>
+     ${red ? '<div class="warnbox"><b>Non sovrascrivere il PDF originale.</b> Salva con un nome nuovo e conservalo: i dati censurati non si potranno più recuperare.</div>' : ""}` }));
+}
+async function confirmNotOriginal(fileName) {
+  const same = [...S.docs.values()].some(d => d.name.toLowerCase() === String(fileName).toLowerCase());
+  if (!same) return true;
+  return !!(await dialog({ title: "Stai per sostituire l'originale?", buttons: [{ label: "Annulla", value: false }, { label: "Sostituisci comunque", primary: true, value: true }], html:
+    `<p>Hai scelto il nome <b>${esc(fileName)}</b>, uguale a quello di un file aperto.</p>
+     <div class="warnbox danger">Se è lo stesso file, l'originale verrà <b>sostituito dalla versione censurata</b> e i dati coperti andranno <b>persi per sempre</b>.</div>
+     <p class="muted">Consiglio: annulla e salva con un nome diverso.</p>` }));
+}
+
+/* Salva un file: con "Salva con nome" nativo se il browser lo supporta (Chrome/Edge), altrimenti download. */
+async function saveOne(pages, name) {
+  const red = countRedacted(pages) > 0;
+  if (!(await confirmSave(pages))) return false;
+  if (red && !/censurat/i.test(name)) name = cleanName(name) + "_censurato";
+  name = withPdf(name);
+  let handle = null;
+  if (window.showSaveFilePicker) {
+    try {
+      handle = await window.showSaveFilePicker({ suggestedName: name, types: [{ description: "Documento PDF", accept: { "application/pdf": [".pdf"] } }] });
+    } catch (e) {
+      if (e.name === "AbortError") return false;
+      handle = null; // non supportato in questo contesto: si usa il download
+    }
+    if (handle && red && !(await confirmNotOriginal(handle.name))) return false;
+  }
+  busy("Creazione del PDF…"); await nextFrame();
+  try {
+    const bytes = await finalize(await buildPdf(pages, name.replace(/\.pdf$/i, "")));
+    const tail = (S.protect ? "protetto da password · " : "") + fmtSize(bytes.length);
+    if (handle) {
+      const w = await handle.createWritable(); await w.write(bytes); await w.close();
+      toast(`Salvato: ${handle.name} (${tail})`);
+    } else {
+      download(bytes, name);
+      toast(`Scaricato: ${name} (${tail})`);
+    }
+    return true;
+  } catch (e) {
+    console.error(e); toast("Errore durante il salvataggio: " + (e.message || e), true); return false;
+  } finally { idle(); }
+}
+
+$("#bSave").onclick = async () => { if (S.pages.length && await saveOne(S.pages, baseName())) S.dirty = false; };
+$("#bSaveSel").onclick = () => { const sel = S.pages.filter(p => p.sel); if (sel.length) saveOne(sel, baseName() + "_estratto"); };
+
+/* ---------------- timbri: libreria locale (IndexedDB) ----------------
+   Le immagini restano solo in questo browser, su questo computer: non vengono mai inviate da nessuna parte.
+   Esporta/Importa crea un file di backup da conservare o portare su un altro PC. */
+const StampDB = (() => {
+  let dbp = null;
+  function open() {
+    if (!dbp) dbp = new Promise((res, rej) => {
+      const r = indexedDB.open("pdftool", 1);
+      r.onupgradeneeded = () => { if (!r.result.objectStoreNames.contains("stamps")) r.result.createObjectStore("stamps", { keyPath: "id" }); };
+      r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+    });
+    return dbp;
+  }
+  async function tx(mode, fn) {
+    const db = await open();
+    return new Promise((res, rej) => {
+      const t = db.transaction("stamps", mode), st = t.objectStore("stamps");
+      const out = fn(st);
+      t.oncomplete = () => res(out?.result !== undefined ? out.result : out);
+      t.onerror = () => rej(t.error);
+    });
+  }
+  return {
+    all: () => tx("readonly", st => st.getAll()),
+    put: rec => tx("readwrite", st => st.put(rec)),
+    del: id => tx("readwrite", st => st.delete(id)),
+  };
+})();
+
+const b64 = b => { let s = ""; for (let i = 0; i < b.length; i += 0x8000) s += String.fromCharCode.apply(null, b.subarray(i, i + 0x8000)); return btoa(s); };
+const unb64 = s => { const bin = atob(s), o = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) o[i] = bin.charCodeAt(i); return o; };
+
+async function imageSize(bytes, type) {
+  const bmp = await createImageBitmap(new Blob([bytes], { type }));
+  const r = { w: bmp.width, h: bmp.height }; bmp.close?.(); return r;
+}
+function stampUrl(st) {
+  if (!st.url) st.url = URL.createObjectURL(new Blob([st.bytes], { type: st.type }));
+  return st.url;
+}
+async function loadStamps() {
+  try {
+    const recs = await StampDB.all();
+    for (const r of recs) S.stamps.set(r.id, { ...r, bytes: new Uint8Array(r.bytes), url: null });
+  } catch (e) { console.warn("timbri non disponibili:", e); S.stampsOff = true; }
+  renderStamps();
+}
+async function addStampFiles(files) {
+  let n = 0;
+  for (const f of [...files]) {
+    if (!/\.(png|jpe?g)$/i.test(f.name) && !/^image\/(png|jpeg)$/.test(f.type)) { toast(`"${f.name}" non è un'immagine PNG o JPG.`, true); continue; }
+    try {
+      const bytes = new Uint8Array(await f.arrayBuffer());
+      const { w, h } = await imageSize(bytes, f.type || "image/png");
+      const rec = { id: "s" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name: f.name.replace(/\.(png|jpe?g)$/i, ""), type: /png/i.test(f.type) || /\.png$/i.test(f.name) ? "image/png" : "image/jpeg", bytes, w, h };
+      S.stamps.set(rec.id, rec);
+      if (!S.stampsOff) { try { await StampDB.put({ ...rec, bytes: rec.bytes.buffer.slice(0) }); } catch (e) { console.warn(e); S.stampsOff = true; } }
+      n++;
+    } catch (e) { console.error(e); toast(`Impossibile leggere "${f.name}".`, true); }
+  }
+  if (n) { renderStamps(); toast(n === 1 ? "Timbro salvato." : `${n} timbri salvati.`); }
+  if (S.stampsOff && n) toast("Questo browser non permette di memorizzare i timbri: resteranno solo per questa sessione. Usa Esporta per conservarli.", true);
+}
+function renderStamps() {
+  const list = $("#stList"), items = [...S.stamps.values()].filter(s => !s.removed);
+  list.replaceChildren();
+  $("#stEmpty").hidden = items.length > 0;
+  for (const st of items) {
+    const card = el("div", "stamp", `<div class="im"><img src="${stampUrl(st)}" alt=""></div><div class="nm" title="${esc(st.name)}">${esc(st.name)}</div><div class="row"><button data-ren title="Rinomina"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L20 8l-4-4L4 16z"/></svg></button><button data-del title="Elimina"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg></button></div>`);
+    card.querySelector("[data-ren]").onclick = async e => {
+      e.stopPropagation();
+      const name = prompt("Nome del timbro:", st.name);
+      if (name == null) return;
+      st.name = name.trim() || st.name;
+      if (!S.stampsOff) { try { await StampDB.put({ id: st.id, name: st.name, type: st.type, bytes: st.bytes.buffer.slice(0), w: st.w, h: st.h }); } catch { } }
+      renderStamps();
+    };
+    card.querySelector("[data-del]").onclick = async e => {
+      e.stopPropagation();
+      const used = S.pages.some(p => (p.items || []).some(i => i.stampId === st.id));
+      if (!confirm(used ? `"${st.name}" è usato in questo documento. Eliminandolo dalla libreria resta comunque sulle pagine già timbrate. Procedere?` : `Eliminare il timbro "${st.name}"?`)) return;
+      st.removed = true;
+      if (!S.stampsOff) { try { await StampDB.del(st.id); } catch { } }
+      renderStamps(); toast("Timbro eliminato.");
+    };
+    card.onclick = () => useStamp(st);
+    list.append(card);
+  }
+}
+function openStamps(pick) {
+  S.stampPick = !!pick;
+  $("#stHint").textContent = pick ? "Clic su un timbro per applicarlo a questa pagina; poi puoi spostarlo e ridimensionarlo."
+    : S.pages.some(p => p.sel) ? `Clic su un timbro per applicarlo alle ${S.pages.filter(p => p.sel).length} pagine selezionate.`
+      : "Qui gestisci i timbri. Per applicarne uno, seleziona prima le pagine oppure aprilo dall'anteprima di una pagina.";
+  renderStamps();
+  $("#stModal").classList.add("on");
+}
+$("#bStamps").onclick = () => openStamps(false);
+$("#stAdd").onclick = () => $("#stFile").click();
+$("#stFile").onchange = e => { if (e.target.files.length) addStampFiles(e.target.files); e.target.value = ""; };
+$("#stExport").onclick = () => {
+  const items = [...S.stamps.values()].filter(s => !s.removed);
+  if (!items.length) { toast("Non ci sono timbri da esportare.", true); return; }
+  const data = { app: "PDF Tool", kind: "stamps", version: 1, stamps: items.map(s => ({ name: s.name, type: s.type, w: s.w, h: s.h, data: b64(s.bytes) })) };
+  const url = URL.createObjectURL(new Blob([JSON.stringify(data)], { type: "application/json" }));
+  const a = el("a"); a.href = url; a.download = "timbri-pdftool.json"; document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 30000);
+  toast(`${items.length} timbri esportati: conserva il file come backup.`);
+};
+$("#stImport").onclick = () => $("#stJson").click();
+$("#stJson").onchange = async e => {
+  const f = e.target.files[0]; e.target.value = "";
+  if (!f) return;
+  try {
+    const data = JSON.parse(await f.text());
+    if (data?.kind !== "stamps" || !Array.isArray(data.stamps)) throw new Error("formato");
+    let n = 0;
+    for (const s of data.stamps) {
+      const bytes = unb64(s.data);
+      const rec = { id: "s" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name: s.name || "timbro", type: s.type || "image/png", bytes, w: s.w, h: s.h };
+      if (!rec.w || !rec.h) Object.assign(rec, await imageSize(bytes, rec.type));
+      S.stamps.set(rec.id, rec);
+      if (!S.stampsOff) { try { await StampDB.put({ ...rec, bytes: rec.bytes.buffer.slice(0) }); } catch { S.stampsOff = true; } }
+      n++;
+    }
+    renderStamps(); toast(`${n} timbri importati.`);
+  } catch (err) { console.error(err); toast("Il file non sembra un backup di timbri valido.", true); }
+};
+
+/* ---------------- elementi sovrapposti (timbri e testo) ---------------- */
+const A4H = 841.89, A4W = 595.28;
+const pgW = p => p.vpW || A4W, pgH = p => p.vpH || A4H;
+const newId = () => "i" + (S.nextItem++);
+function setItems(p, list) { snapshot(); p.items = list; const c = S.cards.get(p.id); if (c) applyRot(c, p); if (pvId === p.id) drawLayer(); }
+function addItem(p, it) { setItems(p, [...(p.items || []), it]); }
+// dimensioni della pagina come è mostrata (con la rotazione scelta dall'utente)
+const dispW = p => (p.rot % 180 ? pgH(p) : pgW(p)), dispH = p => (p.rot % 180 ? pgW(p) : pgH(p));
+function stampItem(p, st, center) {
+  const w = 0.28, h = Math.min(0.5, (w * dispW(p) / st.w * st.h) / dispH(p));
+  const box = center ? { x: (1 - w) / 2, y: (1 - h) / 2, w, h } : { x: 1 - w - 0.05, y: 1 - h - 0.05, w, h };
+  return { id: newId(), kind: "img", stampId: st.id, ...toBase(p, box), rot: p.rot, opacity: 1 };
+}
+function useStamp(st) {
+  if (S.stampPick && pvId != null) {
+    const p = curPage(); if (!p) return;
+    const it = stampItem(p, st, true);
+    addItem(p, it); selItem = it.id; setEditMode("items");
+    $("#stModal").classList.remove("on");
+    toast("Timbro inserito: trascinalo per spostarlo, usa il quadratino per ridimensionarlo.");
+    return;
+  }
+  const sel = S.pages.filter(p => p.sel);
+  if (!sel.length) { toast("Seleziona prima le pagine su cui applicare il timbro, oppure aprilo dall'anteprima di una pagina.", true); return; }
+  snapshot();
+  for (const p of sel) p.items = [...(p.items || []), stampItem(p, st)];
+  for (const p of sel) { const c = S.cards.get(p.id); if (c) applyRot(c, p); }
+  $("#stModal").classList.remove("on");
+  toast(`Timbro applicato a ${sel.length} ${sel.length === 1 ? "pagina" : "pagine"}. Apri l'anteprima per spostarlo.`);
+}
+
+const FONT_CSS = { Helvetica: "Helvetica, Arial, sans-serif", Times: "'Times New Roman', Times, serif", Courier: "'Courier New', Courier, monospace" };
+let txtTarget = null;
+function openText(it) {
+  txtTarget = it || null;
+  const d = it || { text: "", font: "Helvetica", bold: false, italic: false, size: 14, color: "#000000", align: "left", opacity: 1 };
+  $("#txtArea").value = d.text; $("#txtFont").value = d.font; $("#txtSize").value = d.size;
+  $("#txtColor").value = d.color; $("#txtAlign").value = d.align;
+  $("#txtOp").value = Math.round(d.opacity * 100); $("#txtOpV").textContent = Math.round(d.opacity * 100) + "%";
+  $("#txtB").classList.toggle("on", !!d.bold); $("#txtI").classList.toggle("on", !!d.italic);
+  $("#txtErr").textContent = ""; $("#txtOk").textContent = it ? "Aggiorna" : "Inserisci";
+  $("#txtTitle").textContent = it ? "Modifica testo" : "Inserisci testo";
+  $("#txtModal").classList.add("on"); $("#txtArea").focus();
+}
+$("#txtB").onclick = () => $("#txtB").classList.toggle("on");
+$("#txtI").onclick = () => $("#txtI").classList.toggle("on");
+$("#txtOp").oninput = e => { $("#txtOpV").textContent = e.target.value + "%"; };
+$("#pvText").onclick = () => openText(null);
+$("#txtOk").onclick = () => {
+  const p = curPage(); if (!p) return;
+  const text = $("#txtArea").value;
+  if (!text.trim()) { $("#txtErr").textContent = "Scrivi il testo da inserire."; return; }
+  const d = {
+    text, font: $("#txtFont").value, bold: $("#txtB").classList.contains("on"), italic: $("#txtI").classList.contains("on"),
+    size: Math.min(200, Math.max(4, +$("#txtSize").value || 14)), color: $("#txtColor").value, align: $("#txtAlign").value,
+    opacity: +$("#txtOp").value / 100,
+  };
+  if (txtTarget) setItems(p, (p.items || []).map(i => i.id === txtTarget.id ? { ...i, ...d } : i));
+  else {
+    const lines = text.split("\n").length, h = Math.min(0.9, (lines * d.size * 1.25) / dispH(p));
+    const it = { id: newId(), kind: "text", ...d, ...toBase(p, { x: 0.12, y: 0.45, w: 0.76, h }), rot: p.rot };
+    addItem(p, it); selItem = it.id; setEditMode("items");
+  }
+  $("#txtModal").classList.remove("on");
+};
+
+/* Testo: i caratteri standard del PDF usano la codifica WinAnsi (latino occidentale). */
+const TXT_MAP = { "‘": "'", "’": "'", "‚": "'", "“": '"', "”": '"', "„": '"', "–": "-", "—": "-", "…": "...", " ": " ", "•": "-", "−": "-", "ʼ": "'" };
+let txtDropped = false;
+function sanitize(t) {
+  let out = "";
+  for (const ch of String(t).replace(/\r/g, "")) {
+    const m = TXT_MAP[ch] ?? ch;
+    for (const c of m) {
+      const code = c.codePointAt(0);
+      if (c === "\n" || code === 0x20AC || (code >= 0x20 && code <= 0x7e) || (code >= 0xa0 && code <= 0xff)) out += c;
+      else { out += "?"; txtDropped = true; }
+    }
+  }
+  return out;
+}
+function wrapLines(text, font, size, maxW) {
+  const out = [];
+  for (const para of text.split("\n")) {
+    if (!para) { out.push(""); continue; }
+    let line = "";
+    for (const word of para.split(/(\s+)/)) {
+      if (!word) continue;
+      const test = line + word;
+      if (line && font.widthOfTextAtSize(test, size) > maxW) {
+        out.push(line.trimEnd());
+        line = word.trimStart();
+        while (font.widthOfTextAtSize(line, size) > maxW && line.length > 1) { // parola più larga del riquadro
+          let k = 1; while (k < line.length && font.widthOfTextAtSize(line.slice(0, k + 1), size) <= maxW) k++;
+          out.push(line.slice(0, k)); line = line.slice(k);
+        }
+      } else line = test;
+    }
+    out.push(line.trimEnd());
+  }
+  return out;
+}
+/* Versione in scala di grigi di un timbro (mantiene la trasparenza: PNG). */
+async function grayStamp(st) {
+  const bmp = await createImageBitmap(new Blob([st.bytes], { type: st.type }));
+  const c = document.createElement("canvas"); c.width = bmp.width; c.height = bmp.height;
+  const x = c.getContext("2d"); x.filter = "grayscale(1)"; x.drawImage(bmp, 0, 0); bmp.close?.();
+  const blob = await new Promise(r => c.toBlob(r, "image/png"));
+  c.width = c.height = 0;
+  return new Uint8Array(await blob.arrayBuffer());
+}
+const grayHex = h => { const n = parseInt(h.slice(1), 16), v = Math.round(0.299 * ((n >> 16) & 255) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)); return "#" + [v, v, v].map(x => x.toString(16).padStart(2, "0")).join(""); };
+const hexRgb = h => { const n = parseInt(h.slice(1), 16); return window.PDFLib.rgb(((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255); };
+async function getFont(out, it, cache) {
+  const F = window.PDFLib.StandardFonts;
+  const key = it.font + (it.bold ? "B" : "") + (it.italic ? "I" : "");
+  const name = { Helvetica: [F.Helvetica, F.HelveticaBold, F.HelveticaOblique, F.HelveticaBoldOblique], Times: [F.TimesRoman, F.TimesRomanBold, F.TimesRomanItalic, F.TimesRomanBoldItalic], Courier: [F.Courier, F.CourierBold, F.CourierOblique, F.CourierBoldOblique] }[it.font][(it.bold ? 1 : 0) + (it.italic ? 2 : 0)];
+  if (!cache.f[key]) cache.f[key] = await out.embedFont(name);
+  return cache.f[key];
+}
+/* Disegna timbri e testo sopra la pagina (senza rasterizzarla: il testo esistente resta selezionabile). */
+/* Frame dell'elemento: la pagina come era mostrata quando l'elemento è stato inserito. */
+function itemMap(map, it) {
+  const r = ((it.rot || 0) % 360 + 360) % 360, swap = r % 180 !== 0;
+  return {
+    w: swap ? map.h : map.w, h: swap ? map.w : map.h, angle: map.angle + r,
+    pt: (u, v) => { const [bu, bv] = rotPt((360 - r) % 360, u, v); return map.pt(bu, bv); },
+  };
+}
+async function drawItems(out, pdfPage, p, map0, cache) {
+  for (const it0 of p.items || []) {
+    const map = itemMap(map0, it0);
+    const it = { ...it0, ...rotRect(((it0.rot || 0) % 360 + 360) % 360, it0) };
+    const wPts = it.w * map.w, hPts = it.h * map.h;
+    if (it.kind === "img") {
+      const st = S.stamps.get(it.stampId);
+      if (!st) continue;
+      const ck = it.stampId + (S.gray ? "-g" : "");
+      if (!cache.i[ck]) cache.i[ck] = S.gray ? await out.embedPng(await grayStamp(st)) : st.type === "image/png" ? await out.embedPng(st.bytes) : await out.embedJpg(st.bytes);
+      const A = map.pt(it.x, it.y + it.h);
+      pdfPage.drawImage(cache.i[ck], { x: A.x, y: A.y, width: wPts, height: hPts, rotate: degrees(map.angle), opacity: it.opacity });
+    } else {
+      const font = await getFont(out, it, cache);
+      const txt = sanitize(it.text);
+      const lines = wrapLines(txt, font, it.size, wPts);
+      const asc = font.heightAtSize(it.size, { descender: false });
+      lines.forEach((ln, i) => {
+        if (!ln) return;
+        const tw = font.widthOfTextAtSize(ln, it.size);
+        const dx = it.align === "center" ? (wPts - tw) / 2 : it.align === "right" ? wPts - tw : 0;
+        const yTop = i * it.size * 1.2 + asc;
+        const A = map.pt(it.x + dx / map.w, it.y + yTop / map.h);
+        pdfPage.drawText(ln, { x: A.x, y: A.y, size: it.size, font, color: hexRgb(S.gray ? grayHex(it.color) : it.color), rotate: degrees(map.angle), opacity: it.opacity });
+      });
+    }
+  }
+}
+function pageMapper(pjsPage) {
+  const vp = pjsPage.getViewport({ scale: 1 });
+  const pt = (u, v) => { const [x, y] = vp.convertToPdfPoint(u * vp.width, v * vp.height); return { x, y }; };
+  const a = pt(0, 0), b = pt(1, 0);
+  return { w: vp.width, h: vp.height, angle: Math.round(Math.atan2(b.y - a.y, b.x - a.x) * 180 / Math.PI), pt };
+}
+
+/* ---------------- divisione: tagli scelti sulle miniature ---------------- */
+function cutGroups() {
+  const g = []; let cur = null;
+  S.pages.forEach((p, i) => {
+    if (!cur || (i > 0 && S.cuts.has(p.id))) { cur = { from: i, to: i, id: p.id }; g.push(cur); }
+    else cur.to = i;
+  });
+  return g;
+}
+const defaultGroupName = (k, tot) => `${baseName()}_${String(k + 1).padStart(String(tot).length, "0")}`;
+function groupNames() {
+  const gs = cutGroups(), seen = new Set();
+  return gs.map((g, k) => {
+    let base = cleanName(S.cutNames.get(g.id) || defaultGroupName(k, gs.length));
+    if (countRedacted(S.pages.slice(g.from, g.to + 1)) && !/censurat/i.test(base)) base += "_censurato";
+    let n = base, j = 2; while (seen.has(n.toLowerCase())) n = `${base}_${j++}`; seen.add(n.toLowerCase());
+    return n + ".pdf";
+  });
+}
+function setCutting(on) {
+  S.cutting = on && S.pages.length > 1;
+  document.body.classList.toggle("cutting", S.cutting);
+  $("#cutbar").hidden = !S.cutting;
+  $("#bSplit").classList.toggle("locked", S.cutting);
+  if (S.cutting) {
+    S.pages.forEach(p => p.sel = false);
+    $("#cutFolder").hidden = !window.showDirectoryPicker;   // non disponibile su Firefox e Safari
+    $("#cutDl").classList.toggle("primary", !window.showDirectoryPicker);
+  }
+  render();
+}
+$("#bSplit").onclick = () => setCutting(!S.cutting);
+$("#cutDone").onclick = () => setCutting(false);
+$("#cutAll").onclick = () => { S.pages.forEach((p, i) => { if (i) S.cuts.add(p.id); }); render(); };
+$("#cutNone").onclick = () => { S.cuts.clear(); render(); };
+
+function fmtSize(n) { return n > 1048576 ? (n / 1048576).toFixed(1) + " MB" : Math.max(1, Math.round(n / 1024)) + " KB"; }
+
+async function saveParts(toFolder) {
+  const gs = cutGroups();
+  if (gs.length < 2 && !confirm("Non hai messo nessun taglio: verrà salvato un unico file. Continuare?")) return;
+  const pages = gs.flatMap(g => S.pages.slice(g.from, g.to + 1));
+  if (!(await confirmSave(pages))) return;
+  const names = groupNames();
+  let dir = null;
+  if (toFolder) {
+    try { dir = await window.showDirectoryPicker({ mode: "readwrite", id: "pdftool-split" }); }
+    catch (e) { if (e.name !== "AbortError") toast("Impossibile accedere alla cartella: " + e.message, true); return; }
+    const clash = [];
+    for (const n of names) { try { await dir.getFileHandle(n); clash.push(n); } catch { } }
+    if (clash.length) {
+      const red = countRedacted(pages) > 0;
+      const ok = await dialog({ title: "File già presenti", buttons: [{ label: "Annulla", value: false }, { label: "Sovrascrivi", primary: true, value: true }], html:
+        `<p>${clash.length === 1 ? "Un file con lo stesso nome esiste" : `${clash.length} file con lo stesso nome esistono`} già nella cartella (es. <b>${esc(clash[0])}</b>).</p>` +
+        (red ? `<div class="warnbox danger">Se tra questi c'è il PDF originale, verrà sostituito dalla versione censurata e i dati coperti andranno <b>persi per sempre</b>.</div>` : "<p>Vuoi sovrascriverli?</p>") });
+      if (!ok) return;
+    }
+  }
+  let total = 0;
+  try {
+    for (let i = 0; i < gs.length; i++) {
+      busy(`${toFolder ? "Salvataggio" : "Creazione"} ${i + 1} di ${gs.length}…`); await nextFrame();
+      const bytes = await finalize(await buildPdf(S.pages.slice(gs[i].from, gs[i].to + 1), names[i].replace(/\.pdf$/i, "")));
+      total += bytes.length;
+      if (dir) { const fh = await dir.getFileHandle(names[i], { create: true }); const w = await fh.createWritable(); await w.write(bytes); await w.close(); }
+      else { download(bytes, names[i]); await new Promise(r => setTimeout(r, 250)); }
+    }
+    toast(dir ? `${gs.length} file salvati nella cartella "${dir.name}" (${fmtSize(total)} in tutto).`
+      : `${gs.length} file scaricati (${fmtSize(total)} in tutto). Se il browser chiede il permesso per i download multipli, consentilo.`);
+    S.dirty = false;
+  } catch (e) { console.error(e); toast("Errore durante il salvataggio: " + (e.message || e), true); }
+  finally { idle(); }
+}
+$("#cutFolder").onclick = () => saveParts(true);
+$("#cutDl").onclick = () => saveParts(false);
+
+/* ---------------- opzioni di salvataggio: qualità e bianco e nero ---------------- */
+function optsLabel() {
+  const on = S.quality || S.gray;
+  $("#bOpts").classList.toggle("locked", !!on);
+  $("#bOpts").title = on ? `Opzioni attive: ${S.quality ? S.quality + " dpi" : "qualità originale"}${S.gray ? ", bianco e nero" : ""}` : "Opzioni di salvataggio: qualità e bianco e nero";
+  $("#optWarn").hidden = !on;
+}
+$("#bOpts").onclick = () => {
+  document.querySelector(`input[name=qmode][value="${S.quality}"]`).checked = true;
+  $("#optGray").checked = S.gray;
+  optsLabel();
+  $("#optModal").classList.add("on");
+};
+document.querySelectorAll("input[name=qmode]").forEach(r => r.onchange = () => { S.quality = +r.value; optsLabel(); });
+$("#optGray").onchange = e => { S.gray = e.target.checked; optsLabel(); };
+$("#optReset").onclick = () => {
+  S.quality = 0; S.gray = false;
+  document.querySelector('input[name=qmode][value="0"]').checked = true; $("#optGray").checked = false;
+  optsLabel(); $("#optModal").classList.remove("on");
+};
+
+/* ---------------- anteprima, censura ed elementi ---------------- */
+let pvId = null, pvTask = null, editMode = null, rdSel = null, rdWork = null, selItem = null, itWork = null;
+const curPage = () => S.pages.find(p => p.id === pvId);
+// Coordinate normalizzate 0..1. "base" = pagina senza la rotazione dell'utente; "display" = come mostrata.
+function rotPt(r, u, v) { return r === 90 ? [1 - v, u] : r === 180 ? [1 - u, 1 - v] : r === 270 ? [v, 1 - u] : [u, v]; }
+function rotRect(r, q) {
+  const [a, b] = rotPt(r, q.x, q.y), [c, d] = rotPt(r, q.x + q.w, q.y + q.h);
+  return { x: Math.min(a, c), y: Math.min(b, d), w: Math.abs(c - a), h: Math.abs(d - b) };
+}
+const toDisp = (p, q) => rotRect(p.rot, q);
+const toBase = (p, q) => rotRect((360 - p.rot) % 360, q);
+
+/* HTML di un elemento (timbro o testo). Le misure del testo usano le unità "cqh", cioè percentuali
+   dell'altezza della pagina mostrata: così il testo scala uguale in anteprima e in miniatura. */
+function itemHTML(p, it, edit, sel, display) {
+  const box = `left:${it.x * 100}%;top:${it.y * 100}%;width:${it.w * 100}%;height:${it.h * 100}%;opacity:${it.opacity}`;
+  // il contenuto è dritto rispetto a come era mostrata la pagina quando è stato inserito (it.rot):
+  // se ora la pagina è ruotata diversamente, il contenuto ruota con lei.
+  const pageW = display ? dispW(p) : pgW(p), pageH = display ? dispH(p) : pgH(p);
+  const delta = (((display ? p.rot : 0) - (it.rot || 0)) % 360 + 360) % 360, swap = delta % 180 !== 0;
+  const bw = it.w * pageW, bh = it.h * pageH;
+  const inW = swap ? bh / bw * 100 : 100, inH = swap ? bw / bh * 100 : 100;
+  let inner = "";
+  if (it.kind === "img") {
+    const st = S.stamps.get(it.stampId);
+    inner = st ? `<img src="${stampUrl(st)}" alt="">` : `<div class="tx" style="font-size:2cqw;color:var(--accent)">timbro mancante</div>`;
+  } else {
+    inner = `<div class="tx" style="font-family:${FONT_CSS[it.font]};font-size:${(it.size / pageW * 100).toFixed(3)}cqw;color:${it.color};text-align:${it.align};font-weight:${it.bold ? 700 : 400};font-style:${it.italic ? "italic" : "normal"}">${esc(it.text)}</div>`;
+  }
+  const handles = edit ? `${it.kind === "text" ? '<span class="e" data-e title="Modifica testo"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L20 8l-4-4L4 16z"/></svg></span>' : ""}<span class="x" data-x title="Elimina">${ICON.x}</span><span class="h" data-h title="Ridimensiona"></span>` : "";
+  return `<div class="ov${sel ? " sel" : ""}" data-it="${it.id}" style="${box}"><div class="in" style="width:${inW}%;height:${inH}%;transform:translate(-50%,-50%) rotate(${delta}deg)">${inner}</div>${handles}</div>`;
+}
+
+async function openPreview(id, mode = null) {
+  pvId = id; rdSel = null; rdWork = null; selItem = null; itWork = null;
+  setEditMode(mode);
+  $("#pvModal").classList.add("on");
+  await drawPreview();
+}
+function setEditMode(mode) {
+  const wasWarn = !$("#pvWarn").hidden;
+  editMode = mode || null; rdSel = null; if (mode !== "items") selItem = null;
+  $("#pvRedact").classList.toggle("locked", editMode === "redact");
+  $("#pvWarn").hidden = editMode !== "redact";
+  // l'avviso cambia lo spazio disponibile: la pagina va ridisegnata alla nuova dimensione
+  if (wasWarn !== !$("#pvWarn").hidden && pvId != null && $("#pvModal").classList.contains("on")) { drawPreview(); return; }
+  const l = $("#pvStage .pvlayer");
+  if (l) { l.classList.toggle("edit", editMode === "redact"); l.classList.toggle("items", editMode === "items"); }
+  drawLayer();
+}
+$("#pvRedact").onclick = () => setEditMode(editMode === "redact" ? null : "redact");
+$("#pvStamp").onclick = () => { if (![...S.stamps.values()].some(s => !s.removed)) toast("Non hai ancora timbri salvati: aggiungi un'immagine dalla finestra che si apre."); openStamps(true); };
+$("#pvRdClear").onclick = () => {
+  const p = curPage(); if (!p?.redacts?.length) return;
+  rdSel = null; setItems2(p, []);
+};
+function setItems2(p, rects) { snapshot(); p.redacts = rects; afterChange(p); }
+
+async function drawPreview() {
+  const i = S.pages.findIndex(p => p.id === pvId);
+  if (i < 0) { closeModals(); return; }
+  const p = S.pages[i], d = S.docs.get(p.docId);
+  $("#pvTitle").textContent = `Pagina ${i + 1} di ${S.pages.length}`;
+  $("#pvPrev").disabled = i === 0; $("#pvNext").disabled = i === S.pages.length - 1;
+  const stage = $("#pvStage");
+  try {
+    pvTask?.cancel();
+    const page = await d.pjs.getPage(p.index + 1);
+    const base = page.getViewport({ scale: 1 });
+    p.vpW = base.width; p.vpH = base.height;
+    const rotation = (page.rotate + p.rot) % 360;
+    const vp1 = page.getViewport({ scale: 1, rotation });
+    const sw = stage.clientWidth - 32, sh = stage.clientHeight - 32;
+    const scale = Math.max(0.1, Math.min(sw / vp1.width, sh / vp1.height));
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const vp = page.getViewport({ scale: scale * dpr, rotation });
+    const c = document.createElement("canvas");
+    c.width = Math.ceil(vp.width); c.height = Math.ceil(vp.height);
+    c.style.width = Math.round(vp.width / dpr) + "px"; c.style.height = Math.round(vp.height / dpr) + "px";
+    pvTask = page.render({ canvasContext: c.getContext("2d"), viewport: vp });
+    await pvTask.promise;
+    if (pvId !== p.id) return;
+    const wrap = el("div", "pvwrap"), layer = el("div", "pvlayer" + (editMode === "redact" ? " edit" : editMode === "items" ? " items" : ""));
+    wrap.append(c, layer);
+    stage.replaceChildren(wrap);
+    bindLayer(layer);
+    drawLayer();
+  } catch (e) { if (e?.name !== "RenderingCancelledException") console.warn(e); }
+}
+function dispRects() { const p = curPage(); return rdWork || (p?.redacts || []).map(q => toDisp(p, q)); }
+function dispItems() { const p = curPage(); return itWork || (p?.items || []).map(it => ({ ...it, ...toDisp(p, it) })); }
+function drawLayer() {
+  const layer = $("#pvStage .pvlayer"); if (!layer) return;
+  const p = curPage(); if (!p) return;
+  const rects = dispRects().map((r, i) => `<div class="rd${i === rdSel ? " sel" : ""}" data-i="${i}" style="left:${r.x * 100}%;top:${r.y * 100}%;width:${r.w * 100}%;height:${r.h * 100}%"><span class="x" data-x title="Elimina">${ICON.x}</span><span class="h" data-h title="Ridimensiona"></span></div>`).join("");
+  const items = dispItems().map(it => itemHTML(p, it, editMode === "items", it.id === selItem, true)).join("");
+  layer.innerHTML = rects + items;
+}
+function afterChange(p) {
+  const card = S.cards.get(p.id); if (card) applyRot(card, p);
+  drawLayer();
+}
+function commitRects(list) {
+  const p = curPage(); if (!p) return;
+  snapshot(); p.redacts = list.map(q => toBase(p, q)); rdWork = null; afterChange(p);
+}
+function commitItems(list) {
+  const p = curPage(); if (!p) return;
+  snapshot(); p.items = list.map(it => { const { x, y, w, h, ...rest } = it; return { ...rest, ...toBase(p, { x, y, w, h }) }; });
+  itWork = null; afterChange(p);
+}
+function deleteSelected() {
+  if (editMode === "items" && selItem != null) {
+    const list = dispItems().filter(it => it.id !== selItem);
+    selItem = null; commitItems(list); return true;
+  }
+  if (rdSel == null) return false;
+  const list = dispRects().filter((_, i) => i !== rdSel);
+  rdSel = null; commitRects(list); return true;
+}
+function bindLayer(layer) {
+  let op = null;
+  const pos = e => { const b = layer.getBoundingClientRect(); return [Math.min(1, Math.max(0, (e.clientX - b.left) / b.width)), Math.min(1, Math.max(0, (e.clientY - b.top) / b.height))]; };
+  layer.addEventListener("dblclick", e => {
+    const ovEl = e.target.closest(".ov");
+    if (editMode === "items" && ovEl) { const it = dispItems().find(i => i.id === ovEl.dataset.it); if (it?.kind === "text") openText(it); }
+  });
+  layer.addEventListener("pointerdown", e => {
+    if (!editMode || e.button > 0) return;
+    const [x, y] = pos(e);
+    if (editMode === "items") {
+      const ovEl = e.target.closest(".ov");
+      if (!ovEl) { if (selItem) { selItem = null; drawLayer(); } return; }
+      e.preventDefault();
+      selItem = ovEl.dataset.it;
+      const list = dispItems();
+      const it = list.find(i => i.id === selItem);
+      if (e.target.closest("[data-x]")) { deleteSelected(); return; }
+      if (e.target.closest("[data-e]")) { drawLayer(); openText(it); return; }
+      op = { kind: e.target.closest("[data-h]") ? "resize" : "move", x0: x, y0: y, orig: { ...it }, list, target: it };
+      itWork = list; layer.setPointerCapture(e.pointerId); drawLayer();
+      return;
+    }
+    e.preventDefault();
+    const rdEl = e.target.closest(".rd");
+    const list = dispRects().map(r => ({ ...r }));
+    if (rdEl && e.target.closest("[data-x]")) { rdSel = +rdEl.dataset.i; deleteSelected(); return; }
+    if (rdEl) {
+      rdSel = +rdEl.dataset.i;
+      op = { kind: e.target.closest("[data-h]") ? "resize" : "move", x0: x, y0: y, orig: { ...list[rdSel] }, list, target: list[rdSel] };
+    } else {
+      rdSel = list.length; list.push({ x, y, w: 0, h: 0 });
+      op = { kind: "draw", x0: x, y0: y, list, target: list[rdSel] };
+    }
+    rdWork = list; layer.setPointerCapture(e.pointerId); drawLayer();
+  });
+  layer.addEventListener("pointermove", e => {
+    if (!op) return;
+    const [x, y] = pos(e), r = op.target, keepRatio = op.kind === "resize" && r.kind === "img";
+    if (op.kind === "draw") Object.assign(r, { x: Math.min(x, op.x0), y: Math.min(y, op.y0), w: Math.abs(x - op.x0), h: Math.abs(y - op.y0) });
+    else if (op.kind === "move") {
+      r.x = Math.min(1 - op.orig.w, Math.max(0, op.orig.x + x - op.x0));
+      r.y = Math.min(1 - op.orig.h, Math.max(0, op.orig.y + y - op.y0));
+    } else {
+      r.w = Math.max(0.01, x - op.orig.x);
+      r.h = keepRatio ? op.orig.h * (r.w / op.orig.w) : Math.max(0.01, y - op.orig.y);
+    }
+    drawLayer();
+  });
+  const end = () => {
+    if (!op) return;
+    const { kind, list, orig, target: r } = op; op = null;
+    const same = orig && r.x === orig.x && r.y === orig.y && r.w === orig.w && r.h === orig.h;
+    if (editMode === "items") { if (same) { itWork = null; drawLayer(); } else commitItems(list); return; }
+    if (kind === "draw" && (r.w < 0.006 || r.h < 0.006)) { list.splice(rdSel, 1); rdSel = null; rdWork = null; drawLayer(); return; }
+    if (same) { rdWork = null; drawLayer(); return; }
+    commitRects(list);
+  };
+  layer.addEventListener("pointerup", end);
+  layer.addEventListener("pointercancel", end);
+}
+function pvMove(d) {
+  const i = S.pages.findIndex(p => p.id === pvId) + d;
+  if (i >= 0 && i < S.pages.length) { pvId = S.pages[i].id; rdSel = null; rdWork = null; selItem = null; itWork = null; drawPreview(); }
+}
+$("#pvPrev").onclick = () => pvMove(-1);
+$("#pvNext").onclick = () => pvMove(1);
+$("#pvRotL").onclick = () => { rotate([pvId], -90); drawPreview(); };
+$("#pvRotR").onclick = () => { rotate([pvId], 90); drawPreview(); };
+$("#pvDel").onclick = () => {
+  const i = S.pages.findIndex(p => p.id === pvId);
+  const nxt = S.pages[i + 1] || S.pages[i - 1];
+  remove([pvId]);
+  if (nxt) { pvId = nxt.id; rdSel = null; selItem = null; drawPreview(); } else closeModals();
+};
+
+/* ---------------- modali, tastiera, varie ---------------- */
+function closeModals() {
+  if ($("#dlg").classList.contains("on")) { closeDialog(); return; } // Esc chiude prima la finestra in primo piano
+  closeDialog();
+  document.querySelectorAll(".modal-bg.on").forEach(m => m.classList.remove("on")); pvId = null;
+}
+document.querySelectorAll("[data-close]").forEach(b => b.onclick = closeModals);
+document.querySelectorAll(".modal-bg").forEach(m => m.addEventListener("mousedown", e => { if (e.target === m) closeModals(); }));
+
+$("#bSelAll").onclick = () => { const all = S.pages.every(p => p.sel); S.pages.forEach(p => p.sel = !all); updateSel(); };
+$("#bRotL").onclick = () => rotate(selIds(), -90);
+$("#bRotR").onclick = () => rotate(selIds(), 90);
+$("#bDel").onclick = () => remove(selIds());
+$("#bUndo").onclick = undo;
+$("#bClear").onclick = () => {
+  if (S.dirty && !confirm("Chiudere tutti i file? Le modifiche non salvate andranno perse.")) return;
+  S.docs.forEach(d => { d.pjs.destroy(); d.port?.terminate(); }); S.docs.clear(); S.pages = []; S.undo = []; S.dirty = false;
+  $("#bUndo").disabled = true; $("#outName").value = ""; setProtect(null); selItem = null;
+  S.cuts.clear(); S.cutNames.clear(); S.cutting = false; document.body.classList.remove("cutting"); $("#cutbar").hidden = true; $("#bSplit").classList.remove("locked");
+  render();
+};
+$("#outName").addEventListener("keydown", e => { if (e.key === "Enter") $("#bSave").click(); });
+
+document.addEventListener("keydown", e => {
+  const typing = /^(INPUT|TEXTAREA)$/.test(e.target.tagName);
+  const mod = e.ctrlKey || e.metaKey;
+  const pvOpen = $("#pvModal").classList.contains("on");
+  const anyModal = document.querySelector(".modal-bg.on");
+  if (e.key === "Escape" && pvOpen && !document.querySelector("#dlg.on, #txtModal.on, #stModal.on") && (rdSel != null || selItem != null)) { rdSel = selItem = null; drawLayer(); return; }
+  if (e.key === "Escape") { if (anyModal) closeModals(); else { S.pages.forEach(p => p.sel = false); updateSel(); } return; }
+  if (mod && e.key.toLowerCase() === "s") { e.preventDefault(); if (!anyModal) $("#bSave").click(); return; }
+  if (typing) return;
+  if (pvOpen) {
+    if ($("#dlg").classList.contains("on")) return;
+    if (mod && e.key.toLowerCase() === "z") { e.preventDefault(); undo(); return; }
+    if (editMode && (e.key === "Delete" || e.key === "Backspace")) { e.preventDefault(); if (!deleteSelected() && editMode === "items") toast("Seleziona prima un timbro o un testo."); return; }
+    if (e.key.toLowerCase() === "c" && !mod) { setEditMode(editMode === "redact" ? null : "redact"); return; }
+    if (e.key.toLowerCase() === "t" && !mod) { openText(null); return; }
+    if (e.key === "ArrowLeft") pvMove(-1);
+    else if (e.key === "ArrowRight") pvMove(1);
+    else if (e.key.toLowerCase() === "r") $(e.shiftKey ? "#pvRotL" : "#pvRotR").click();
+    else if (e.key === "Delete" || e.key === "Backspace") $("#pvDel").click();
+    return;
+  }
+  if (anyModal) return;
+  if (mod && e.key.toLowerCase() === "z") { e.preventDefault(); undo(); }
+  else if (mod && e.key.toLowerCase() === "a") { e.preventDefault(); S.pages.forEach(p => p.sel = true); updateSel(); }
+  else if (mod && e.key.toLowerCase() === "o") { e.preventDefault(); $("#file").click(); }
+  else if (e.key === "Delete" || e.key === "Backspace") { e.preventDefault(); remove(selIds()); }
+  else if (e.key.toLowerCase() === "r" && !mod) rotate(selIds(), e.shiftKey ? -90 : 90);
+});
+window.addEventListener("beforeunload", e => { if (S.dirty && S.pages.length) { e.preventDefault(); e.returnValue = ""; } });
+window.addEventListener("resize", () => { if (pvId != null) drawPreview(); });
+
+render();
+loadStamps();
+</script>
+</body>
+</html>
