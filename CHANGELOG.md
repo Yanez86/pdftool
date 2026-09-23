@@ -3,6 +3,17 @@
 Tutte le modifiche a PDF Tool, dalla più recente.
 Tipi di modifica: **Nuovo**, **Migliorato**, **Correzione**.
 
+## [1.4.0] – 2026-09-23
+
+### Nuovo
+- **Timbri**: immagini PNG (anche con sfondo trasparente) o JPG da sovrapporre alle pagine, con spostamento e ridimensionamento nell'anteprima. Si possono applicare in un colpo solo a tutte le pagine selezionate.
+- I timbri restano **salvati in questo browser**, solo su questo computer, e sono pronti al prossimo avvio. Con **Esporta/Importa** si crea un file di backup da conservare o portare su un altro PC.
+- **Testo**: blocchi di testo su più righe con carattere (Helvetica, Times, Courier), grassetto, corsivo, dimensione, colore, allineamento e opacità. Nel PDF resta **vero testo**, selezionabile e ricercabile.
+- Timbri e testo non rasterizzano la pagina: il contenuto originale resta intatto (a meno che la pagina non sia anche censurata).
+
+### Migliorato
+- I PDF vengono elaborati in un processo in background anche aprendo il programma con un doppio clic: l'interfaccia non si blocca più con i file grandi.
+
 ## [1.3.0] – 2026-09-22
 
 ### Nuovo

@@ -74,7 +74,7 @@ main{flex:1;overflow:auto;position:relative}
 .thumb{aspect-ratio:1/1;display:grid;place-items:center;background:var(--surface-2);border-radius:8px;overflow:hidden}
 .thumb canvas{background:#fff;display:block;width:100%;height:auto}
 .thumb .pgw{position:relative;box-shadow:0 1px 3px rgba(0,0,0,.18);transition:transform .2s ease;line-height:0}
-.rdl{position:absolute;inset:0;pointer-events:none}
+.rdl{position:absolute;inset:0;pointer-events:none;container-type:inline-size}
 .rdl i{position:absolute;background:#000}
 .redbadge{position:absolute;bottom:44px;left:16px;font-size:11px;font-weight:650;background:#111;color:#fff;border-radius:6px;padding:1px 7px;display:flex;align-items:center;gap:4px}
 .thumb .ph{width:60%;aspect-ratio:1/1.3;background:var(--border);border-radius:3px;animation:pulse 1.2s ease-in-out infinite}
@@ -177,7 +177,7 @@ main{flex:1;overflow:auto;position:relative}
 .pv-stage{flex:1;display:grid;place-items:center;overflow:auto;background:var(--surface-2);padding:16px}
 .pv-stage canvas{background:#fff;display:block}
 .pvwrap{position:relative;box-shadow:0 2px 12px rgba(0,0,0,.25);line-height:0;touch-action:none}
-.pvlayer{position:absolute;inset:0}
+.pvlayer{position:absolute;inset:0;container-type:inline-size}
 .pvlayer.edit{cursor:crosshair}
 .rd{position:absolute;background:#000}
 .pvlayer.edit .rd{cursor:move;outline:1px dashed rgba(255,255,255,.55);outline-offset:-3px}
@@ -190,6 +190,41 @@ main{flex:1;overflow:auto;position:relative}
 .pvwarn .t{flex:1}
 .pvwarn button{flex:none}
 .bul{margin:0 0 12px;padding-left:18px;display:grid;gap:4px}
+/* elementi sovrapposti: timbri e testo */
+.rdl i.ov,.rd.ov{background:none}
+.ov{position:absolute}
+.ov .in{position:absolute;top:50%;left:50%;overflow:hidden}
+.ov img{width:100%;height:100%;object-fit:fill;display:block}
+.ov .in>*{width:100%;height:100%}
+.ov .tx{width:100%;height:100%;white-space:pre-wrap;word-break:break-word;line-height:1.2;overflow:hidden}
+.pvlayer.items .ov{cursor:move;outline:1px dashed rgba(120,120,120,.8);outline-offset:2px}
+.pvlayer.items .ov.sel{outline:2px solid var(--sel);outline-offset:2px}
+.ov .h,.ov .x,.ov .e{position:absolute;display:none}
+.pvlayer.items .ov.sel .h,.pvlayer.items .ov.sel .x,.pvlayer.items .ov.sel .e{display:grid}
+.ov .h{right:-7px;bottom:-7px;width:14px;height:14px;background:#fff;border:2px solid var(--sel);border-radius:4px;cursor:nwse-resize}
+.ov .x{top:-11px;right:-11px;width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;place-items:center;cursor:pointer;border:2px solid #fff}
+.ov .e{top:-11px;right:15px;width:22px;height:22px;border-radius:50%;background:var(--sel);color:#fff;place-items:center;cursor:pointer;border:2px solid #fff}
+.stamps{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px}
+.stamp{border:1px solid var(--border);border-radius:10px;padding:8px;display:grid;gap:6px;cursor:pointer;background:var(--surface)}
+.stamp:hover{border-color:var(--sel);box-shadow:0 0 0 3px var(--sel-soft)}
+.stamp .im{height:80px;display:grid;place-items:center;background:repeating-conic-gradient(var(--surface-2) 0 25%,transparent 0 50%) 50%/16px 16px;border-radius:6px;overflow:hidden}
+.stamp .im img{max-width:100%;max-height:80px;object-fit:contain}
+.stamp .nm{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center}
+.stamp .row{display:flex;gap:4px;justify-content:center}
+.stamp .row button{border:0;background:transparent;color:var(--muted);cursor:pointer;border-radius:6px;width:26px;height:24px;display:grid;place-items:center}
+.stamp .row button:hover{background:var(--surface-2);color:var(--accent)}
+.emptybox{border:2px dashed var(--border-strong);border-radius:12px;padding:26px;text-align:center;color:var(--muted)}
+.frow{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px}
+.frow .fl{margin:0}
+.frow select,.frow input[type=number]{height:34px;border:1px solid var(--border-strong);border-radius:8px;background:var(--surface);padding:0 8px}
+.frow input[type=color]{height:34px;width:46px;border:1px solid var(--border-strong);border-radius:8px;background:var(--surface);padding:2px}
+.frow input[type=range]{accent-color:var(--sel);width:110px}
+.tgl{display:inline-flex;gap:0}
+.tgl button{height:34px;width:38px;border:1px solid var(--border-strong);background:var(--surface);cursor:pointer}
+.tgl button:first-child{border-radius:8px 0 0 8px}
+.tgl button:last-child{border-radius:0 8px 8px 0;border-left:0}
+.tgl button.on{background:var(--sel-soft);border-color:var(--sel);color:var(--sel)}
+#txtArea{width:100%;min-height:96px;border:1px solid var(--border-strong);border-radius:8px;padding:8px 10px;background:var(--surface);resize:vertical;font:inherit}
 .warnbox.danger{background:var(--accent-soft);border-color:var(--accent)}
 
 .busy{position:fixed;inset:0;z-index:80;display:none;place-items:center;background:rgba(10,10,10,.35)}
@@ -220,6 +255,7 @@ main{flex:1;overflow:auto;position:relative}
   <div class="spacer"></div>
   <button class="btn" id="bAdd" title="Aggiungi PDF o immagini JPG/PNG (puoi anche trascinarli)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span class="lbl">Aggiungi file</span></button>
   <button class="btn" id="bSplit" disabled title="Dividi in più PDF"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.1 15.9M14.5 14.5 20 20M8.1 8.1 12 12"/></svg><span class="lbl">Dividi…</span></button>
+  <button class="btn" id="bStamps" title="Libreria timbri: immagini da applicare sui PDF"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21h14M6 17h12l-1-3.5a2 2 0 0 0-2-1.5h-1l.8-4a2.8 2.8 0 1 0-5.6 0l.8 4H9a2 2 0 0 0-2 1.5z"/></svg><span class="lbl">Timbri</span></button>
   <button class="btn icon" id="bLock" disabled title="Proteggi con password i PDF salvati"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></button>
   <div class="namebox" title="Nome del file da salvare"><input id="outName" placeholder="nome-file" spellcheck="false" autocomplete="off"><span>.pdf</span></div>
   <button class="btn primary" id="bSave" disabled title="Salva PDF (Ctrl+S)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg><span class="lbl" id="saveLbl">Salva PDF</span></button>
@@ -256,6 +292,8 @@ main{flex:1;overflow:auto;position:relative}
   <button class="linkbtn" id="bNews" title="Cosa c'è di nuovo">v<span id="appVer"></span> · Novità</button>
 </footer>
 
+<input type="file" id="stFile" accept="image/png,image/jpeg,.png,.jpg,.jpeg" multiple hidden>
+<input type="file" id="stJson" accept="application/json,.json" hidden>
 <input type="file" id="file" accept="application/pdf,.pdf,image/png,image/jpeg,.png,.jpg,.jpeg,.p7m,application/pkcs7-mime" multiple hidden>
 <div class="dropzone" id="dropzone"><div>Rilascia per aggiungere i PDF</div></div>
 
@@ -292,6 +330,8 @@ main{flex:1;overflow:auto;position:relative}
       <div class="sep"></div>
       <button class="btn icon" id="pvRotL" title="Ruota a sinistra"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg></button>
       <button class="btn icon" id="pvRotR" title="Ruota a destra"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg></button>
+      <button class="btn" id="pvStamp" title="Applica un timbro su questa pagina"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21h14M6 17h12l-1-3.5a2 2 0 0 0-2-1.5h-1l.8-4a2.8 2.8 0 1 0-5.6 0l.8 4H9a2 2 0 0 0-2 1.5z"/></svg><span class="lbl">Timbro</span></button>
+      <button class="btn" id="pvText" title="Inserisci un blocco di testo"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6V4h14v2M12 4v16M9 20h6"/></svg><span class="lbl">Testo</span></button>
       <button class="btn" id="pvRedact" title="Censura: copri con rettangoli neri le parti da nascondere (C)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="8" rx="1.5" fill="currentColor"/><path d="M3 4h10M3 20h14"/></svg><span class="lbl">Censura</span></button>
       <button class="btn icon danger" id="pvDel" title="Elimina pagina"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg></button>
       <div class="sep"></div>
@@ -299,6 +339,44 @@ main{flex:1;overflow:auto;position:relative}
     </header>
     <div class="pvwarn" id="pvWarn" hidden><div class="t"><b>Modalità censura.</b> Trascina sulla pagina per coprire una zona. Clic su un rettangolo per spostarlo o ridimensionarlo, <kbd>Canc</kbd> per eliminarlo, <kbd>Ctrl</kbd>+<kbd>Z</kbd> per annullare.<br>Al salvataggio questa pagina diventerà un'<b>immagine</b>: <b>si perdono testo selezionabile, ricerca e OCR</b>, e ciò che è sotto i rettangoli viene <b>cancellato per sempre</b>.</div><button class="btn" id="pvRdClear" style="height:30px">Rimuovi tutte</button></div>
     <div class="pv-stage" id="pvStage"></div>
+  </div>
+</div>
+
+<!-- libreria timbri -->
+<div class="modal-bg" id="stModal">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="stTitle">
+    <header><h3 id="stTitle">Timbri</h3><div class="spacer"></div><button class="btn ghost icon" data-close title="Chiudi"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></header>
+    <div class="body">
+      <p class="muted" id="stHint" style="margin:0 0 14px"></p>
+      <div class="stamps" id="stList"></div>
+      <div class="emptybox" id="stEmpty" hidden>Nessun timbro salvato.<br>Aggiungi un'immagine PNG (meglio se con sfondo trasparente) o JPG.</div>
+    </div>
+    <footer>
+      <button class="btn" id="stExport" style="margin-right:auto">Esporta…</button>
+      <button class="btn" id="stImport">Importa…</button>
+      <button class="btn primary" id="stAdd">Aggiungi immagine…</button>
+    </footer>
+  </div>
+</div>
+
+<!-- testo -->
+<div class="modal-bg" id="txtModal">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="txtTitle">
+    <header><h3 id="txtTitle">Testo</h3><div class="spacer"></div><button class="btn ghost icon" data-close title="Chiudi"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></header>
+    <div class="body">
+      <label class="fl">Testo<textarea id="txtArea" spellcheck="false" placeholder="Scrivi qui…"></textarea></label>
+      <div class="frow">
+        <label class="fl">Carattere<select id="txtFont"><option value="Helvetica">Helvetica</option><option value="Times">Times</option><option value="Courier">Courier</option></select></label>
+        <div class="tgl"><button id="txtB" title="Grassetto" style="font-weight:800">G</button><button id="txtI" title="Corsivo" style="font-style:italic">C</button></div>
+        <label class="fl">Dimensione<input type="number" id="txtSize" min="4" max="200" step="1" value="14"></label>
+        <label class="fl">Colore<input type="color" id="txtColor" value="#000000"></label>
+        <label class="fl">Allineamento<select id="txtAlign"><option value="left">Sinistra</option><option value="center">Centro</option><option value="right">Destra</option></select></label>
+        <label class="fl">Opacità <span id="txtOpV" class="muted"></span><input type="range" id="txtOp" min="10" max="100" step="5" value="100"></label>
+      </div>
+      <p class="muted" style="font-size:12.5px;margin:0">Il testo resta vero testo nel PDF: selezionabile e ricercabile. Accenti e simboli europei sono supportati; emoji e alfabeti non latini no.</p>
+      <div class="err" id="txtErr"></div>
+    </div>
+    <footer><button class="btn" data-close>Annulla</button><button class="btn primary" id="txtOk">Inserisci</button></footer>
   </div>
 </div>
 
@@ -353,9 +431,13 @@ const pdfjsLib = globalThis.pdfjsLib;
 
 /* Worker di pdf.js da blob (funziona anche da file://). Il fetch nel worker è
    bloccato: serve solo i moduli WASM incorporati, qualsiasi altra richiesta fallisce. */
-{
-  const code = document.getElementById("pdfjs-worker").textContent;
-  pdfjsLib.GlobalWorkerOptions.workerSrc = URL.createObjectURL(new Blob([code], { type: "text/javascript" }));
+const WORKER_URL = URL.createObjectURL(new Blob([document.getElementById("pdfjs-worker").textContent], { type: "text/javascript" }));
+pdfjsLib.GlobalWorkerOptions.workerSrc = WORKER_URL;
+/* Un worker per documento: il PDF viene elaborato in background e l'interfaccia resta fluida.
+   Se il browser non lo permette, pdf.js lavora sul thread principale (più lento, ma funziona). */
+function makeWorker() {
+  try { const port = new Worker(WORKER_URL); return { pdfWorker: new pdfjsLib.PDFWorker({ port }), port }; }
+  catch (e) { console.warn("worker non disponibile:", e); return null; }
 }
 const PDFJS_OPTS = { wasmUrl: "embedded:/", useWorkerFetch: true, isEvalSupported: true, useSystemFonts: true, stopAtErrors: false };
 
@@ -376,6 +458,12 @@ const ICON = {
 /* ---------------- versione e novità ----------------
    Per ogni nuova versione: aggiungere una voce IN CIMA a questa lista (e a CHANGELOG.md). */
 const CHANGELOG = [
+  { v: "1.4.0", date: "2026-09-23", items: [
+    ["new", "Timbri: immagini PNG o JPG da applicare sui PDF, con spostamento e ridimensionamento; si possono applicare a più pagine selezionate in un colpo solo"],
+    ["new", "I timbri restano salvati in questo browser, solo su questo computer, e si possono esportare e importare con un file di backup"],
+    ["new", "Testo: blocchi di testo con carattere, grassetto, corsivo, dimensione, colore, allineamento e opacità; resta vero testo, selezionabile e ricercabile"],
+    ["imp", "PDF elaborati in background: l'interfaccia non si blocca più sui file grandi aperti da doppio clic"],
+  ]},
   { v: "1.3.0", date: "2026-09-22", items: [
     ["new", "Censura: nell'anteprima (o col pulsante sulla miniatura) si disegnano rettangoli neri da spostare, ridimensionare ed eliminare; Ctrl+Z annulla"],
     ["new", "Censura sicura: al salvataggio la pagina censurata diventa un'immagine, quindi sotto il nero non resta nulla (né testo, né OCR, né immagini)"],
@@ -421,7 +509,8 @@ const S = {
   pages: [],         // [{ id, docId, index, rot, sel }]
   undo: [],
   cards: new Map(),  // page.id -> element
-  nextDoc: 1, nextPage: 1, anchor: null, dirty: false, protect: null,
+  nextDoc: 1, nextPage: 1, nextItem: 1, anchor: null, dirty: false, protect: null,
+  stamps: new Map(), stampPick: false, stampsOff: false,
 };
 
 /* ---------------- utilità UI ---------------- */
@@ -556,7 +645,8 @@ async function askPassword(fileName, wrong) {
 
 /* Apre un PDF con pdf.js; se serve la password la chiede (anche più volte). */
 async function openPdf(bytes, name) {
-  const task = pdfjsLib.getDocument({ ...PDFJS_OPTS, data: bytes.slice() });
+  const w = makeWorker();
+  const task = pdfjsLib.getDocument({ ...PDFJS_OPTS, data: bytes.slice(), worker: w?.pdfWorker });
   let used = null, cancelled = false;
   task.onPassword = async (update, reason) => {
     const wasBusy = $("#busy").classList.contains("on"); idle();
@@ -565,8 +655,8 @@ async function openPdf(bytes, name) {
     if (pw == null) { cancelled = true; task.destroy(); return; }
     used = pw; update(pw);
   };
-  try { return { pjs: await task.promise, password: used }; }
-  catch (e) { if (cancelled) return { pjs: null }; throw e; }
+  try { return { pjs: await task.promise, password: used, port: w?.port }; }
+  catch (e) { w?.port?.terminate(); if (cancelled) return { pjs: null }; throw e; }
 }
 
 /* ---------------- file firmati .p7m (CAdES) ----------------
@@ -757,10 +847,10 @@ async function addFiles(fileList) {
           signers = r.signers;
         } else if (isImgFile(f) && !isPdfFile(f)) { isImage = true; bytes = await imageToPdf(f); }
         else bytes = new Uint8Array(await f.arrayBuffer());
-        const { pjs, password } = await openPdf(bytes, name);
+        const { pjs, password, port } = await openPdf(bytes, name);
         if (!pjs) { toast(`Apertura di "${name}" annullata.`); continue; }
         const id = S.nextDoc++;
-        const doc = { id, name, bytes, pjs, color: COLORS[(id - 1) % COLORS.length], libDoc: null, isImage, signers, password };
+        const doc = { id, name, bytes, pjs, port, color: COLORS[(id - 1) % COLORS.length], libDoc: null, isImage, signers, password };
         S.docs.set(id, doc);
         for (let i = 0; i < pjs.numPages; i++) S.pages.push({ id: S.nextPage++, docId: id, index: i, rot: 0, sel: false });
         added++; lastName = name;
@@ -824,7 +914,8 @@ function applyRot(card, p) {
   // censure: rettangoli neri sulla miniatura (coordinate della pagina non ruotata dall'utente)
   const l = card.querySelector(".rdl");
   const rs = p.redacts || [];
-  if (l) l.innerHTML = rs.map(r => `<i style="left:${r.x * 100}%;top:${r.y * 100}%;width:${r.w * 100}%;height:${r.h * 100}%"></i>`).join("");
+  if (l) l.innerHTML = rs.map(r => `<i style="left:${r.x * 100}%;top:${r.y * 100}%;width:${r.w * 100}%;height:${r.h * 100}%"></i>`).join("")
+    + (p.items || []).map(it => itemHTML(p, it, false, false, false)).join("");
   let rb = card.querySelector(".redbadge");
   if (rs.length) { if (!rb) { rb = el("span", "redbadge", ICON.redact.replace(/15/g, "11") + "Censurata"); rb.title = "Al salvataggio questa pagina diventerà un'immagine: testo e OCR non saranno più selezionabili"; card.append(rb); } }
   else if (rb) rb.remove();
@@ -928,7 +1019,7 @@ $("#grid").addEventListener("click", e => {
     if (a === "rotR") rotate([id], 90);
     if (a === "del") remove([id]);
     if (a === "zoom") openPreview(id);
-    if (a === "redact") openPreview(id, true);
+    if (a === "redact") openPreview(id, "redact");
     return;
   }
   const idx = S.pages.findIndex(p => p.id === id);
@@ -1053,7 +1144,7 @@ async function libDoc(doc) {
 /* Pagina censurata: viene "fotografata" (200 dpi), i rettangoli neri sono dipinti sull'immagine e la pagina
    originale è sostituita dall'immagine. Così sotto il nero non resta nulla: né testo, né OCR, né immagini. */
 const REDACT_DPI = 200;
-async function addRedactedPage(out, p) {
+async function addRedactedPage(out, p, cache) {
   const d = S.docs.get(p.docId);
   const page = await d.pjs.getPage(p.index + 1);
   const base = page.getViewport({ scale: 1 });
@@ -1071,6 +1162,7 @@ async function addRedactedPage(out, p) {
   const img = await out.embedJpg(new Uint8Array(await blob.arrayBuffer()));
   const np = out.addPage([base.width, base.height]);
   np.drawImage(img, { x: 0, y: 0, width: base.width, height: base.height });
+  if (p.items?.length) await drawItems(out, np, p, { w: base.width, h: base.height, angle: 0, pt: (u, v) => ({ x: u * base.width, y: (1 - v) * base.height }) }, cache);
   if (p.rot) np.setRotation(degrees(p.rot));
 }
 async function buildPdfOnce(pages, title) {
@@ -1084,12 +1176,19 @@ async function buildPdfOnce(pages, title) {
     const res = await out.copyPages(src, uniq);
     uniq.forEach((ix, k) => copied.set(docId + ":" + ix, res[k]));
   }
+  const cache = { f: {}, i: {} };
+  txtDropped = false;
   for (const p of pages) {
-    if (p.redacts?.length) { await addRedactedPage(out, p); continue; }
+    if (p.redacts?.length) { await addRedactedPage(out, p, cache); continue; }
     const pg = copied.get(p.docId + ":" + p.index);
+    if (p.items?.length) {
+      const page = await S.docs.get(p.docId).pjs.getPage(p.index + 1);
+      await drawItems(out, pg, p, pageMapper(page), cache);
+    }
     if (p.rot) pg.setRotation(degrees((((pg.getRotation().angle + p.rot) % 360) + 360) % 360));
     out.addPage(pg);
   }
+  if (txtDropped) toast("Alcuni caratteri del testo inserito non sono supportati dai caratteri PDF standard e sono stati sostituiti con \"?\".", true);
   if (title) out.setTitle(title);
   out.setProducer("PDF Tool");
   out.setCreator("PDF Tool");
@@ -1403,8 +1502,290 @@ $("#sDownloadAll").onclick = async () => {
   finally { idle(); }
 };
 
-/* ---------------- anteprima e censura ---------------- */
-let pvId = null, pvTask = null, redactMode = false, rdSel = null, rdWork = null;
+/* ---------------- timbri: libreria locale (IndexedDB) ----------------
+   Le immagini restano solo in questo browser, su questo computer: non vengono mai inviate da nessuna parte.
+   Esporta/Importa crea un file di backup da conservare o portare su un altro PC. */
+const StampDB = (() => {
+  let dbp = null;
+  function open() {
+    if (!dbp) dbp = new Promise((res, rej) => {
+      const r = indexedDB.open("pdftool", 1);
+      r.onupgradeneeded = () => { if (!r.result.objectStoreNames.contains("stamps")) r.result.createObjectStore("stamps", { keyPath: "id" }); };
+      r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+    });
+    return dbp;
+  }
+  async function tx(mode, fn) {
+    const db = await open();
+    return new Promise((res, rej) => {
+      const t = db.transaction("stamps", mode), st = t.objectStore("stamps");
+      const out = fn(st);
+      t.oncomplete = () => res(out?.result !== undefined ? out.result : out);
+      t.onerror = () => rej(t.error);
+    });
+  }
+  return {
+    all: () => tx("readonly", st => st.getAll()),
+    put: rec => tx("readwrite", st => st.put(rec)),
+    del: id => tx("readwrite", st => st.delete(id)),
+  };
+})();
+
+const b64 = b => { let s = ""; for (let i = 0; i < b.length; i += 0x8000) s += String.fromCharCode.apply(null, b.subarray(i, i + 0x8000)); return btoa(s); };
+const unb64 = s => { const bin = atob(s), o = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) o[i] = bin.charCodeAt(i); return o; };
+
+async function imageSize(bytes, type) {
+  const bmp = await createImageBitmap(new Blob([bytes], { type }));
+  const r = { w: bmp.width, h: bmp.height }; bmp.close?.(); return r;
+}
+function stampUrl(st) {
+  if (!st.url) st.url = URL.createObjectURL(new Blob([st.bytes], { type: st.type }));
+  return st.url;
+}
+async function loadStamps() {
+  try {
+    const recs = await StampDB.all();
+    for (const r of recs) S.stamps.set(r.id, { ...r, bytes: new Uint8Array(r.bytes), url: null });
+  } catch (e) { console.warn("timbri non disponibili:", e); S.stampsOff = true; }
+  renderStamps();
+}
+async function addStampFiles(files) {
+  let n = 0;
+  for (const f of [...files]) {
+    if (!/\.(png|jpe?g)$/i.test(f.name) && !/^image\/(png|jpeg)$/.test(f.type)) { toast(`"${f.name}" non è un'immagine PNG o JPG.`, true); continue; }
+    try {
+      const bytes = new Uint8Array(await f.arrayBuffer());
+      const { w, h } = await imageSize(bytes, f.type || "image/png");
+      const rec = { id: "s" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name: f.name.replace(/\.(png|jpe?g)$/i, ""), type: /png/i.test(f.type) || /\.png$/i.test(f.name) ? "image/png" : "image/jpeg", bytes, w, h };
+      S.stamps.set(rec.id, rec);
+      if (!S.stampsOff) { try { await StampDB.put({ ...rec, bytes: rec.bytes.buffer.slice(0) }); } catch (e) { console.warn(e); S.stampsOff = true; } }
+      n++;
+    } catch (e) { console.error(e); toast(`Impossibile leggere "${f.name}".`, true); }
+  }
+  if (n) { renderStamps(); toast(n === 1 ? "Timbro salvato." : `${n} timbri salvati.`); }
+  if (S.stampsOff && n) toast("Questo browser non permette di memorizzare i timbri: resteranno solo per questa sessione. Usa Esporta per conservarli.", true);
+}
+function renderStamps() {
+  const list = $("#stList"), items = [...S.stamps.values()].filter(s => !s.removed);
+  list.replaceChildren();
+  $("#stEmpty").hidden = items.length > 0;
+  for (const st of items) {
+    const card = el("div", "stamp", `<div class="im"><img src="${stampUrl(st)}" alt=""></div><div class="nm" title="${esc(st.name)}">${esc(st.name)}</div><div class="row"><button data-ren title="Rinomina"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L20 8l-4-4L4 16z"/></svg></button><button data-del title="Elimina"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg></button></div>`);
+    card.querySelector("[data-ren]").onclick = async e => {
+      e.stopPropagation();
+      const name = prompt("Nome del timbro:", st.name);
+      if (name == null) return;
+      st.name = name.trim() || st.name;
+      if (!S.stampsOff) { try { await StampDB.put({ id: st.id, name: st.name, type: st.type, bytes: st.bytes.buffer.slice(0), w: st.w, h: st.h }); } catch { } }
+      renderStamps();
+    };
+    card.querySelector("[data-del]").onclick = async e => {
+      e.stopPropagation();
+      const used = S.pages.some(p => (p.items || []).some(i => i.stampId === st.id));
+      if (!confirm(used ? `"${st.name}" è usato in questo documento. Eliminandolo dalla libreria resta comunque sulle pagine già timbrate. Procedere?` : `Eliminare il timbro "${st.name}"?`)) return;
+      st.removed = true;
+      if (!S.stampsOff) { try { await StampDB.del(st.id); } catch { } }
+      renderStamps(); toast("Timbro eliminato.");
+    };
+    card.onclick = () => useStamp(st);
+    list.append(card);
+  }
+}
+function openStamps(pick) {
+  S.stampPick = !!pick;
+  $("#stHint").textContent = pick ? "Clic su un timbro per applicarlo a questa pagina; poi puoi spostarlo e ridimensionarlo."
+    : S.pages.some(p => p.sel) ? `Clic su un timbro per applicarlo alle ${S.pages.filter(p => p.sel).length} pagine selezionate.`
+      : "Qui gestisci i timbri. Per applicarne uno, seleziona prima le pagine oppure aprilo dall'anteprima di una pagina.";
+  renderStamps();
+  $("#stModal").classList.add("on");
+}
+$("#bStamps").onclick = () => openStamps(false);
+$("#stAdd").onclick = () => $("#stFile").click();
+$("#stFile").onchange = e => { if (e.target.files.length) addStampFiles(e.target.files); e.target.value = ""; };
+$("#stExport").onclick = () => {
+  const items = [...S.stamps.values()].filter(s => !s.removed);
+  if (!items.length) { toast("Non ci sono timbri da esportare.", true); return; }
+  const data = { app: "PDF Tool", kind: "stamps", version: 1, stamps: items.map(s => ({ name: s.name, type: s.type, w: s.w, h: s.h, data: b64(s.bytes) })) };
+  const url = URL.createObjectURL(new Blob([JSON.stringify(data)], { type: "application/json" }));
+  const a = el("a"); a.href = url; a.download = "timbri-pdftool.json"; document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 30000);
+  toast(`${items.length} timbri esportati: conserva il file come backup.`);
+};
+$("#stImport").onclick = () => $("#stJson").click();
+$("#stJson").onchange = async e => {
+  const f = e.target.files[0]; e.target.value = "";
+  if (!f) return;
+  try {
+    const data = JSON.parse(await f.text());
+    if (data?.kind !== "stamps" || !Array.isArray(data.stamps)) throw new Error("formato");
+    let n = 0;
+    for (const s of data.stamps) {
+      const bytes = unb64(s.data);
+      const rec = { id: "s" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name: s.name || "timbro", type: s.type || "image/png", bytes, w: s.w, h: s.h };
+      if (!rec.w || !rec.h) Object.assign(rec, await imageSize(bytes, rec.type));
+      S.stamps.set(rec.id, rec);
+      if (!S.stampsOff) { try { await StampDB.put({ ...rec, bytes: rec.bytes.buffer.slice(0) }); } catch { S.stampsOff = true; } }
+      n++;
+    }
+    renderStamps(); toast(`${n} timbri importati.`);
+  } catch (err) { console.error(err); toast("Il file non sembra un backup di timbri valido.", true); }
+};
+
+/* ---------------- elementi sovrapposti (timbri e testo) ---------------- */
+const A4H = 841.89, A4W = 595.28;
+const pgW = p => p.vpW || A4W, pgH = p => p.vpH || A4H;
+const newId = () => "i" + (S.nextItem++);
+function setItems(p, list) { snapshot(); p.items = list; const c = S.cards.get(p.id); if (c) applyRot(c, p); if (pvId === p.id) drawLayer(); }
+function addItem(p, it) { setItems(p, [...(p.items || []), it]); }
+// dimensioni della pagina come è mostrata (con la rotazione scelta dall'utente)
+const dispW = p => (p.rot % 180 ? pgH(p) : pgW(p)), dispH = p => (p.rot % 180 ? pgW(p) : pgH(p));
+function stampItem(p, st, center) {
+  const w = 0.28, h = Math.min(0.5, (w * dispW(p) / st.w * st.h) / dispH(p));
+  const box = center ? { x: (1 - w) / 2, y: (1 - h) / 2, w, h } : { x: 1 - w - 0.05, y: 1 - h - 0.05, w, h };
+  return { id: newId(), kind: "img", stampId: st.id, ...toBase(p, box), rot: p.rot, opacity: 1 };
+}
+function useStamp(st) {
+  if (S.stampPick && pvId != null) {
+    const p = curPage(); if (!p) return;
+    const it = stampItem(p, st, true);
+    addItem(p, it); selItem = it.id; setEditMode("items");
+    $("#stModal").classList.remove("on");
+    toast("Timbro inserito: trascinalo per spostarlo, usa il quadratino per ridimensionarlo.");
+    return;
+  }
+  const sel = S.pages.filter(p => p.sel);
+  if (!sel.length) { toast("Seleziona prima le pagine su cui applicare il timbro, oppure aprilo dall'anteprima di una pagina.", true); return; }
+  snapshot();
+  for (const p of sel) p.items = [...(p.items || []), stampItem(p, st)];
+  for (const p of sel) { const c = S.cards.get(p.id); if (c) applyRot(c, p); }
+  $("#stModal").classList.remove("on");
+  toast(`Timbro applicato a ${sel.length} ${sel.length === 1 ? "pagina" : "pagine"}. Apri l'anteprima per spostarlo.`);
+}
+
+const FONT_CSS = { Helvetica: "Helvetica, Arial, sans-serif", Times: "'Times New Roman', Times, serif", Courier: "'Courier New', Courier, monospace" };
+let txtTarget = null;
+function openText(it) {
+  txtTarget = it || null;
+  const d = it || { text: "", font: "Helvetica", bold: false, italic: false, size: 14, color: "#000000", align: "left", opacity: 1 };
+  $("#txtArea").value = d.text; $("#txtFont").value = d.font; $("#txtSize").value = d.size;
+  $("#txtColor").value = d.color; $("#txtAlign").value = d.align;
+  $("#txtOp").value = Math.round(d.opacity * 100); $("#txtOpV").textContent = Math.round(d.opacity * 100) + "%";
+  $("#txtB").classList.toggle("on", !!d.bold); $("#txtI").classList.toggle("on", !!d.italic);
+  $("#txtErr").textContent = ""; $("#txtOk").textContent = it ? "Aggiorna" : "Inserisci";
+  $("#txtTitle").textContent = it ? "Modifica testo" : "Inserisci testo";
+  $("#txtModal").classList.add("on"); $("#txtArea").focus();
+}
+$("#txtB").onclick = () => $("#txtB").classList.toggle("on");
+$("#txtI").onclick = () => $("#txtI").classList.toggle("on");
+$("#txtOp").oninput = e => { $("#txtOpV").textContent = e.target.value + "%"; };
+$("#pvText").onclick = () => openText(null);
+$("#txtOk").onclick = () => {
+  const p = curPage(); if (!p) return;
+  const text = $("#txtArea").value;
+  if (!text.trim()) { $("#txtErr").textContent = "Scrivi il testo da inserire."; return; }
+  const d = {
+    text, font: $("#txtFont").value, bold: $("#txtB").classList.contains("on"), italic: $("#txtI").classList.contains("on"),
+    size: Math.min(200, Math.max(4, +$("#txtSize").value || 14)), color: $("#txtColor").value, align: $("#txtAlign").value,
+    opacity: +$("#txtOp").value / 100,
+  };
+  if (txtTarget) setItems(p, (p.items || []).map(i => i.id === txtTarget.id ? { ...i, ...d } : i));
+  else {
+    const lines = text.split("\n").length, h = Math.min(0.9, (lines * d.size * 1.25) / dispH(p));
+    const it = { id: newId(), kind: "text", ...d, ...toBase(p, { x: 0.12, y: 0.45, w: 0.76, h }), rot: p.rot };
+    addItem(p, it); selItem = it.id; setEditMode("items");
+  }
+  $("#txtModal").classList.remove("on");
+};
+
+/* Testo: i caratteri standard del PDF usano la codifica WinAnsi (latino occidentale). */
+const TXT_MAP = { "‘": "'", "’": "'", "‚": "'", "“": '"', "”": '"', "„": '"', "–": "-", "—": "-", "…": "...", " ": " ", "•": "-", "−": "-", "ʼ": "'" };
+let txtDropped = false;
+function sanitize(t) {
+  let out = "";
+  for (const ch of String(t).replace(/\r/g, "")) {
+    const m = TXT_MAP[ch] ?? ch;
+    for (const c of m) {
+      const code = c.codePointAt(0);
+      if (c === "\n" || code === 0x20AC || (code >= 0x20 && code <= 0x7e) || (code >= 0xa0 && code <= 0xff)) out += c;
+      else { out += "?"; txtDropped = true; }
+    }
+  }
+  return out;
+}
+function wrapLines(text, font, size, maxW) {
+  const out = [];
+  for (const para of text.split("\n")) {
+    if (!para) { out.push(""); continue; }
+    let line = "";
+    for (const word of para.split(/(\s+)/)) {
+      if (!word) continue;
+      const test = line + word;
+      if (line && font.widthOfTextAtSize(test, size) > maxW) {
+        out.push(line.trimEnd());
+        line = word.trimStart();
+        while (font.widthOfTextAtSize(line, size) > maxW && line.length > 1) { // parola più larga del riquadro
+          let k = 1; while (k < line.length && font.widthOfTextAtSize(line.slice(0, k + 1), size) <= maxW) k++;
+          out.push(line.slice(0, k)); line = line.slice(k);
+        }
+      } else line = test;
+    }
+    out.push(line.trimEnd());
+  }
+  return out;
+}
+const hexRgb = h => { const n = parseInt(h.slice(1), 16); return window.PDFLib.rgb(((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255); };
+async function getFont(out, it, cache) {
+  const F = window.PDFLib.StandardFonts;
+  const key = it.font + (it.bold ? "B" : "") + (it.italic ? "I" : "");
+  const name = { Helvetica: [F.Helvetica, F.HelveticaBold, F.HelveticaOblique, F.HelveticaBoldOblique], Times: [F.TimesRoman, F.TimesRomanBold, F.TimesRomanItalic, F.TimesRomanBoldItalic], Courier: [F.Courier, F.CourierBold, F.CourierOblique, F.CourierBoldOblique] }[it.font][(it.bold ? 1 : 0) + (it.italic ? 2 : 0)];
+  if (!cache.f[key]) cache.f[key] = await out.embedFont(name);
+  return cache.f[key];
+}
+/* Disegna timbri e testo sopra la pagina (senza rasterizzarla: il testo esistente resta selezionabile). */
+/* Frame dell'elemento: la pagina come era mostrata quando l'elemento è stato inserito. */
+function itemMap(map, it) {
+  const r = ((it.rot || 0) % 360 + 360) % 360, swap = r % 180 !== 0;
+  return {
+    w: swap ? map.h : map.w, h: swap ? map.w : map.h, angle: map.angle + r,
+    pt: (u, v) => { const [bu, bv] = rotPt((360 - r) % 360, u, v); return map.pt(bu, bv); },
+  };
+}
+async function drawItems(out, pdfPage, p, map0, cache) {
+  for (const it0 of p.items || []) {
+    const map = itemMap(map0, it0);
+    const it = { ...it0, ...rotRect(((it0.rot || 0) % 360 + 360) % 360, it0) };
+    const wPts = it.w * map.w, hPts = it.h * map.h;
+    if (it.kind === "img") {
+      const st = S.stamps.get(it.stampId);
+      if (!st) continue;
+      if (!cache.i[it.stampId]) cache.i[it.stampId] = st.type === "image/png" ? await out.embedPng(st.bytes) : await out.embedJpg(st.bytes);
+      const A = map.pt(it.x, it.y + it.h);
+      pdfPage.drawImage(cache.i[it.stampId], { x: A.x, y: A.y, width: wPts, height: hPts, rotate: degrees(map.angle), opacity: it.opacity });
+    } else {
+      const font = await getFont(out, it, cache);
+      const txt = sanitize(it.text);
+      const lines = wrapLines(txt, font, it.size, wPts);
+      const asc = font.heightAtSize(it.size, { descender: false });
+      lines.forEach((ln, i) => {
+        if (!ln) return;
+        const tw = font.widthOfTextAtSize(ln, it.size);
+        const dx = it.align === "center" ? (wPts - tw) / 2 : it.align === "right" ? wPts - tw : 0;
+        const yTop = i * it.size * 1.2 + asc;
+        const A = map.pt(it.x + dx / map.w, it.y + yTop / map.h);
+        pdfPage.drawText(ln, { x: A.x, y: A.y, size: it.size, font, color: hexRgb(it.color), rotate: degrees(map.angle), opacity: it.opacity });
+      });
+    }
+  }
+}
+function pageMapper(pjsPage) {
+  const vp = pjsPage.getViewport({ scale: 1 });
+  const pt = (u, v) => { const [x, y] = vp.convertToPdfPoint(u * vp.width, v * vp.height); return { x, y }; };
+  const a = pt(0, 0), b = pt(1, 0);
+  return { w: vp.width, h: vp.height, angle: Math.round(Math.atan2(b.y - a.y, b.x - a.x) * 180 / Math.PI), pt };
+}
+
+/* ---------------- anteprima, censura ed elementi ---------------- */
+let pvId = null, pvTask = null, editMode = null, rdSel = null, rdWork = null, selItem = null, itWork = null;
 const curPage = () => S.pages.find(p => p.id === pvId);
 // Coordinate normalizzate 0..1. "base" = pagina senza la rotazione dell'utente; "display" = come mostrata.
 function rotPt(r, u, v) { return r === 90 ? [1 - v, u] : r === 180 ? [1 - u, 1 - v] : r === 270 ? [v, 1 - u] : [u, v]; }
@@ -1415,23 +1796,51 @@ function rotRect(r, q) {
 const toDisp = (p, q) => rotRect(p.rot, q);
 const toBase = (p, q) => rotRect((360 - p.rot) % 360, q);
 
-async function openPreview(id, redact = false) {
-  pvId = id; rdSel = null; rdWork = null;
-  setRedactMode(redact);
+/* HTML di un elemento (timbro o testo). Le misure del testo usano le unità "cqh", cioè percentuali
+   dell'altezza della pagina mostrata: così il testo scala uguale in anteprima e in miniatura. */
+function itemHTML(p, it, edit, sel, display) {
+  const box = `left:${it.x * 100}%;top:${it.y * 100}%;width:${it.w * 100}%;height:${it.h * 100}%;opacity:${it.opacity}`;
+  // il contenuto è dritto rispetto a come era mostrata la pagina quando è stato inserito (it.rot):
+  // se ora la pagina è ruotata diversamente, il contenuto ruota con lei.
+  const pageW = display ? dispW(p) : pgW(p), pageH = display ? dispH(p) : pgH(p);
+  const delta = (((display ? p.rot : 0) - (it.rot || 0)) % 360 + 360) % 360, swap = delta % 180 !== 0;
+  const bw = it.w * pageW, bh = it.h * pageH;
+  const inW = swap ? bh / bw * 100 : 100, inH = swap ? bw / bh * 100 : 100;
+  let inner = "";
+  if (it.kind === "img") {
+    const st = S.stamps.get(it.stampId);
+    inner = st ? `<img src="${stampUrl(st)}" alt="">` : `<div class="tx" style="font-size:2cqw;color:var(--accent)">timbro mancante</div>`;
+  } else {
+    inner = `<div class="tx" style="font-family:${FONT_CSS[it.font]};font-size:${(it.size / pageW * 100).toFixed(3)}cqw;color:${it.color};text-align:${it.align};font-weight:${it.bold ? 700 : 400};font-style:${it.italic ? "italic" : "normal"}">${esc(it.text)}</div>`;
+  }
+  const handles = edit ? `${it.kind === "text" ? '<span class="e" data-e title="Modifica testo"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L20 8l-4-4L4 16z"/></svg></span>' : ""}<span class="x" data-x title="Elimina">${ICON.x}</span><span class="h" data-h title="Ridimensiona"></span>` : "";
+  return `<div class="ov${sel ? " sel" : ""}" data-it="${it.id}" style="${box}"><div class="in" style="width:${inW}%;height:${inH}%;transform:translate(-50%,-50%) rotate(${delta}deg)">${inner}</div>${handles}</div>`;
+}
+
+async function openPreview(id, mode = null) {
+  pvId = id; rdSel = null; rdWork = null; selItem = null; itWork = null;
+  setEditMode(mode);
   $("#pvModal").classList.add("on");
   await drawPreview();
 }
-function setRedactMode(on) {
-  redactMode = on; rdSel = null;
-  $("#pvRedact").classList.toggle("locked", on);
-  $("#pvWarn").hidden = !on;
-  const l = $("#pvStage .pvlayer"); if (l) { l.classList.toggle("edit", on); drawLayer(); }
+function setEditMode(mode) {
+  const wasWarn = !$("#pvWarn").hidden;
+  editMode = mode || null; rdSel = null; if (mode !== "items") selItem = null;
+  $("#pvRedact").classList.toggle("locked", editMode === "redact");
+  $("#pvWarn").hidden = editMode !== "redact";
+  // l'avviso cambia lo spazio disponibile: la pagina va ridisegnata alla nuova dimensione
+  if (wasWarn !== !$("#pvWarn").hidden && pvId != null && $("#pvModal").classList.contains("on")) { drawPreview(); return; }
+  const l = $("#pvStage .pvlayer");
+  if (l) { l.classList.toggle("edit", editMode === "redact"); l.classList.toggle("items", editMode === "items"); }
+  drawLayer();
 }
-$("#pvRedact").onclick = () => setRedactMode(!redactMode);
+$("#pvRedact").onclick = () => setEditMode(editMode === "redact" ? null : "redact");
+$("#pvStamp").onclick = () => { if (![...S.stamps.values()].some(s => !s.removed)) toast("Non hai ancora timbri salvati: aggiungi un'immagine dalla finestra che si apre."); openStamps(true); };
 $("#pvRdClear").onclick = () => {
   const p = curPage(); if (!p?.redacts?.length) return;
-  snapshot(); p.redacts = []; rdSel = null; afterRedactChange(p);
+  rdSel = null; setItems2(p, []);
 };
+function setItems2(p, rects) { snapshot(); p.redacts = rects; afterChange(p); }
 
 async function drawPreview() {
   const i = S.pages.findIndex(p => p.id === pvId);
@@ -1443,6 +1852,8 @@ async function drawPreview() {
   try {
     pvTask?.cancel();
     const page = await d.pjs.getPage(p.index + 1);
+    const base = page.getViewport({ scale: 1 });
+    p.vpW = base.width; p.vpH = base.height;
     const rotation = (page.rotate + p.rot) % 360;
     const vp1 = page.getViewport({ scale: 1, rotation });
     const sw = stage.clientWidth - 32, sh = stage.clientHeight - 32;
@@ -1455,7 +1866,7 @@ async function drawPreview() {
     pvTask = page.render({ canvasContext: c.getContext("2d"), viewport: vp });
     await pvTask.promise;
     if (pvId !== p.id) return;
-    const wrap = el("div", "pvwrap"), layer = el("div", "pvlayer" + (redactMode ? " edit" : ""));
+    const wrap = el("div", "pvwrap"), layer = el("div", "pvlayer" + (editMode === "redact" ? " edit" : editMode === "items" ? " items" : ""));
     wrap.append(c, layer);
     stage.replaceChildren(wrap);
     bindLayer(layer);
@@ -1463,22 +1874,32 @@ async function drawPreview() {
   } catch (e) { if (e?.name !== "RenderingCancelledException") console.warn(e); }
 }
 function dispRects() { const p = curPage(); return rdWork || (p?.redacts || []).map(q => toDisp(p, q)); }
+function dispItems() { const p = curPage(); return itWork || (p?.items || []).map(it => ({ ...it, ...toDisp(p, it) })); }
 function drawLayer() {
   const layer = $("#pvStage .pvlayer"); if (!layer) return;
-  layer.innerHTML = dispRects().map((r, i) => `<div class="rd${i === rdSel ? " sel" : ""}" data-i="${i}" style="left:${r.x * 100}%;top:${r.y * 100}%;width:${r.w * 100}%;height:${r.h * 100}%"><span class="x" data-x title="Elimina">${ICON.x}</span><span class="h" data-h title="Ridimensiona"></span></div>`).join("");
+  const p = curPage(); if (!p) return;
+  const rects = dispRects().map((r, i) => `<div class="rd${i === rdSel ? " sel" : ""}" data-i="${i}" style="left:${r.x * 100}%;top:${r.y * 100}%;width:${r.w * 100}%;height:${r.h * 100}%"><span class="x" data-x title="Elimina">${ICON.x}</span><span class="h" data-h title="Ridimensiona"></span></div>`).join("");
+  const items = dispItems().map(it => itemHTML(p, it, editMode === "items", it.id === selItem, true)).join("");
+  layer.innerHTML = rects + items;
 }
-function afterRedactChange(p) {
+function afterChange(p) {
   const card = S.cards.get(p.id); if (card) applyRot(card, p);
   drawLayer();
 }
 function commitRects(list) {
   const p = curPage(); if (!p) return;
-  snapshot();
-  p.redacts = list.map(q => toBase(p, q));
-  rdWork = null;
-  afterRedactChange(p);
+  snapshot(); p.redacts = list.map(q => toBase(p, q)); rdWork = null; afterChange(p);
+}
+function commitItems(list) {
+  const p = curPage(); if (!p) return;
+  snapshot(); p.items = list.map(it => { const { x, y, w, h, ...rest } = it; return { ...rest, ...toBase(p, { x, y, w, h }) }; });
+  itWork = null; afterChange(p);
 }
 function deleteSelected() {
+  if (editMode === "items" && selItem != null) {
+    const list = dispItems().filter(it => it.id !== selItem);
+    selItem = null; commitItems(list); return true;
+  }
   if (rdSel == null) return false;
   const list = dispRects().filter((_, i) => i !== rdSel);
   rdSel = null; commitRects(list); return true;
@@ -1486,38 +1907,59 @@ function deleteSelected() {
 function bindLayer(layer) {
   let op = null;
   const pos = e => { const b = layer.getBoundingClientRect(); return [Math.min(1, Math.max(0, (e.clientX - b.left) / b.width)), Math.min(1, Math.max(0, (e.clientY - b.top) / b.height))]; };
+  layer.addEventListener("dblclick", e => {
+    const ovEl = e.target.closest(".ov");
+    if (editMode === "items" && ovEl) { const it = dispItems().find(i => i.id === ovEl.dataset.it); if (it?.kind === "text") openText(it); }
+  });
   layer.addEventListener("pointerdown", e => {
-    if (!redactMode || e.button > 0) return;
-    e.preventDefault();
+    if (!editMode || e.button > 0) return;
     const [x, y] = pos(e);
+    if (editMode === "items") {
+      const ovEl = e.target.closest(".ov");
+      if (!ovEl) { if (selItem) { selItem = null; drawLayer(); } return; }
+      e.preventDefault();
+      selItem = ovEl.dataset.it;
+      const list = dispItems();
+      const it = list.find(i => i.id === selItem);
+      if (e.target.closest("[data-x]")) { deleteSelected(); return; }
+      if (e.target.closest("[data-e]")) { drawLayer(); openText(it); return; }
+      op = { kind: e.target.closest("[data-h]") ? "resize" : "move", x0: x, y0: y, orig: { ...it }, list, target: it };
+      itWork = list; layer.setPointerCapture(e.pointerId); drawLayer();
+      return;
+    }
+    e.preventDefault();
     const rdEl = e.target.closest(".rd");
     const list = dispRects().map(r => ({ ...r }));
     if (rdEl && e.target.closest("[data-x]")) { rdSel = +rdEl.dataset.i; deleteSelected(); return; }
     if (rdEl) {
       rdSel = +rdEl.dataset.i;
-      op = { kind: e.target.closest("[data-h]") ? "resize" : "move", x0: x, y0: y, orig: { ...list[rdSel] }, list };
+      op = { kind: e.target.closest("[data-h]") ? "resize" : "move", x0: x, y0: y, orig: { ...list[rdSel] }, list, target: list[rdSel] };
     } else {
       rdSel = list.length; list.push({ x, y, w: 0, h: 0 });
-      op = { kind: "draw", x0: x, y0: y, list };
+      op = { kind: "draw", x0: x, y0: y, list, target: list[rdSel] };
     }
     rdWork = list; layer.setPointerCapture(e.pointerId); drawLayer();
   });
   layer.addEventListener("pointermove", e => {
     if (!op) return;
-    const [x, y] = pos(e), r = op.list[rdSel];
+    const [x, y] = pos(e), r = op.target, keepRatio = op.kind === "resize" && r.kind === "img";
     if (op.kind === "draw") Object.assign(r, { x: Math.min(x, op.x0), y: Math.min(y, op.y0), w: Math.abs(x - op.x0), h: Math.abs(y - op.y0) });
     else if (op.kind === "move") {
       r.x = Math.min(1 - op.orig.w, Math.max(0, op.orig.x + x - op.x0));
       r.y = Math.min(1 - op.orig.h, Math.max(0, op.orig.y + y - op.y0));
-    } else { r.w = Math.max(0.005, x - op.orig.x); r.h = Math.max(0.005, y - op.orig.y); }
+    } else {
+      r.w = Math.max(0.01, x - op.orig.x);
+      r.h = keepRatio ? op.orig.h * (r.w / op.orig.w) : Math.max(0.01, y - op.orig.y);
+    }
     drawLayer();
   });
   const end = () => {
     if (!op) return;
-    const { kind, list, orig } = op; op = null;
-    const r = list[rdSel];
+    const { kind, list, orig, target: r } = op; op = null;
+    const same = orig && r.x === orig.x && r.y === orig.y && r.w === orig.w && r.h === orig.h;
+    if (editMode === "items") { if (same) { itWork = null; drawLayer(); } else commitItems(list); return; }
     if (kind === "draw" && (r.w < 0.006 || r.h < 0.006)) { list.splice(rdSel, 1); rdSel = null; rdWork = null; drawLayer(); return; }
-    if (kind !== "draw" && orig && r.x === orig.x && r.y === orig.y && r.w === orig.w && r.h === orig.h) { rdWork = null; drawLayer(); return; }
+    if (same) { rdWork = null; drawLayer(); return; }
     commitRects(list);
   };
   layer.addEventListener("pointerup", end);
@@ -1525,7 +1967,7 @@ function bindLayer(layer) {
 }
 function pvMove(d) {
   const i = S.pages.findIndex(p => p.id === pvId) + d;
-  if (i >= 0 && i < S.pages.length) { pvId = S.pages[i].id; rdSel = null; rdWork = null; drawPreview(); }
+  if (i >= 0 && i < S.pages.length) { pvId = S.pages[i].id; rdSel = null; rdWork = null; selItem = null; itWork = null; drawPreview(); }
 }
 $("#pvPrev").onclick = () => pvMove(-1);
 $("#pvNext").onclick = () => pvMove(1);
@@ -1535,7 +1977,7 @@ $("#pvDel").onclick = () => {
   const i = S.pages.findIndex(p => p.id === pvId);
   const nxt = S.pages[i + 1] || S.pages[i - 1];
   remove([pvId]);
-  if (nxt) { pvId = nxt.id; rdSel = null; drawPreview(); } else closeModals();
+  if (nxt) { pvId = nxt.id; rdSel = null; selItem = null; drawPreview(); } else closeModals();
 };
 
 /* ---------------- modali, tastiera, varie ---------------- */
@@ -1554,8 +1996,8 @@ $("#bDel").onclick = () => remove(selIds());
 $("#bUndo").onclick = undo;
 $("#bClear").onclick = () => {
   if (S.dirty && !confirm("Chiudere tutti i file? Le modifiche non salvate andranno perse.")) return;
-  S.docs.forEach(d => d.pjs.destroy()); S.docs.clear(); S.pages = []; S.undo = []; S.dirty = false;
-  $("#bUndo").disabled = true; $("#outName").value = ""; setProtect(null); render();
+  S.docs.forEach(d => { d.pjs.destroy(); d.port?.terminate(); }); S.docs.clear(); S.pages = []; S.undo = []; S.dirty = false;
+  $("#bUndo").disabled = true; $("#outName").value = ""; setProtect(null); selItem = null; render();
 };
 $("#outName").addEventListener("keydown", e => { if (e.key === "Enter") $("#bSave").click(); });
 
@@ -1564,15 +2006,16 @@ document.addEventListener("keydown", e => {
   const mod = e.ctrlKey || e.metaKey;
   const pvOpen = $("#pvModal").classList.contains("on");
   const anyModal = document.querySelector(".modal-bg.on");
-  if (e.key === "Escape" && pvOpen && !$("#dlg").classList.contains("on") && redactMode && rdSel != null) { rdSel = null; drawLayer(); return; }
+  if (e.key === "Escape" && pvOpen && !document.querySelector("#dlg.on, #txtModal.on, #stModal.on") && (rdSel != null || selItem != null)) { rdSel = selItem = null; drawLayer(); return; }
   if (e.key === "Escape") { if (anyModal) closeModals(); else { S.pages.forEach(p => p.sel = false); updateSel(); } return; }
   if (mod && e.key.toLowerCase() === "s") { e.preventDefault(); if (!anyModal) $("#bSave").click(); return; }
   if (typing) return;
   if (pvOpen) {
     if ($("#dlg").classList.contains("on")) return;
     if (mod && e.key.toLowerCase() === "z") { e.preventDefault(); undo(); return; }
-    if (redactMode && (e.key === "Delete" || e.key === "Backspace")) { e.preventDefault(); deleteSelected(); return; }
-    if (e.key.toLowerCase() === "c" && !mod) { setRedactMode(!redactMode); return; }
+    if (editMode && (e.key === "Delete" || e.key === "Backspace")) { e.preventDefault(); if (!deleteSelected() && editMode === "items") toast("Seleziona prima un timbro o un testo."); return; }
+    if (e.key.toLowerCase() === "c" && !mod) { setEditMode(editMode === "redact" ? null : "redact"); return; }
+    if (e.key.toLowerCase() === "t" && !mod) { openText(null); return; }
     if (e.key === "ArrowLeft") pvMove(-1);
     else if (e.key === "ArrowRight") pvMove(1);
     else if (e.key.toLowerCase() === "r") $(e.shiftKey ? "#pvRotL" : "#pvRotR").click();
@@ -1590,6 +2033,7 @@ window.addEventListener("beforeunload", e => { if (S.dirty && S.pages.length) { 
 window.addEventListener("resize", () => { if (pvId != null) drawPreview(); });
 
 render();
+loadStamps();
 </script>
 </body>
 </html>

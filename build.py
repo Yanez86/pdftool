@@ -27,6 +27,11 @@ for part in m.group(1).split(","):
     items.append(f"{b}:{a}" if b else part)
 pdfjs = pdfjs[: m.start()] + "globalThis.pdfjsLib={" + ",".join(items) + "};"
 
+# Il worker viene usato come script classico: da una pagina aperta con doppio clic (file://) i browser
+# rifiutano i worker "module" creati da un blob. Si sostituisce import.meta.url e si toglie l'export finale.
+worker = worker.replace("import.meta.url", "self.location.href")
+worker = re.sub(r"export\s*\{[^}]*\};?\s*$", "", worker)
+
 # Nel worker: fetch sostituito. Restituisce solo i WASM incorporati, nessuna richiesta di rete.
 prefix = (
     "(()=>{const W=" + json.dumps(wasm) + ";"

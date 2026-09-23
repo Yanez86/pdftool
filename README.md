@@ -14,6 +14,8 @@ Non installa nulla, non ha bisogno di internet e **nessun dato lascia il tuo com
 - **Rinomina** i file prima di salvarli, anche ogni singola parte quando dividi
 - **Foto come pagine**: aggiungi immagini JPG o PNG, ognuna diventa una pagina A4 ruotabile
 - **PDF con password**: apre i PDF protetti chiedendo la password e può proteggere con password i PDF salvati (AES a 256 bit)
+- **Timbri**: applica immagini PNG o JPG (firme, loghi, timbri), spostabili e ridimensionabili, salvate nel browser e esportabili
+- **Testo**: blocchi di testo formattato che restano selezionabili e ricercabili nel PDF
 - **Censura**: copri con rettangoli neri le parti da nascondere, in modo sicuro (vedi sotto)
 - **File firmati .p7m**: estrae il PDF dalla busta firmata e mostra firmatario e data (senza verificare la validità della firma)
 - Anteprima ingrandita, annulla (Ctrl+Z), tema chiaro e scuro automatico
@@ -68,6 +70,12 @@ Il PDF estratto e salvato è una copia **senza firma digitale**.
 Così il contenuto coperto viene eliminato davvero, non solo nascosto. In cambio, **su quelle pagine si perdono testo selezionabile,
 ricerca e OCR**, oltre a link e commenti. Le altre pagine restano intatte. Conserva sempre l'originale: una volta sovrascritto,
 i dati censurati non si possono recuperare.
+
+**Timbri:** le immagini salvate restano in questo browser, su questo computer (archivio locale IndexedDB), e non vengono mai inviate da nessuna parte.
+Possono azzerarsi se svuoti i dati del browser o sposti il file HTML: usa **Esporta** per tenerne un backup.
+
+**Testo:** usa i caratteri standard del PDF (Helvetica, Times, Courier) con la codifica dell'alfabeto latino occidentale.
+Accenti e simboli europei sono supportati; emoji e alfabeti non latini vengono sostituiti con `?`.
 
 **OCR:** il testo OCR delle pagine non censurate viene mantenuto. Le foto aggiunte come pagine non hanno OCR.
 
