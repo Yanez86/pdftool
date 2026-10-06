@@ -91,6 +91,8 @@ body.cutting .card.ge::after{right:0}
 .gname input{flex:1;min-width:0;height:26px;border:1px solid transparent;border-radius:8px;background:transparent;padding:0 6px;font-size:12.5px;font-weight:600}
 .gname input:hover{border-color:var(--border-strong);background:var(--surface)}
 .gname input:focus{outline:0;border-color:var(--sel);background:var(--surface);box-shadow:0 0 0 3px var(--sel-soft)}
+.gname .pen{flex:none;width:24px;height:24px;border:1px solid transparent;border-radius:7px;background:transparent;color:var(--muted);display:grid;place-items:center;cursor:pointer}
+.gname .pen:hover{color:var(--sel);border-color:var(--border-strong);background:var(--surface)}
 .zoom{display:flex;align-items:center;gap:6px;color:var(--muted)}
 .zoom input[type=range]{width:96px;accent-color:var(--sel)}
 @media (max-width:640px){.zoom{display:none}}
@@ -589,6 +591,9 @@ const ICON = {
 /* ---------------- versione e novità ----------------
    Per ogni nuova versione: aggiungere una voce IN CIMA a questa lista (e a CHANGELOG.md). */
 const CHANGELOG = [
+  { v: "1.6.1", date: "2026-10-06", items: [
+    ["imp", "Nella divisione, accanto al nome di ogni file c'è una matita: cliccandola il nome viene selezionato tutto, pronto da riscrivere"],
+  ]},
   { v: "1.6.0", date: "2026-09-23", items: [
     ["imp", "Modalità divisione più leggera: niente bordi colorati, una linea colorata sotto le pagine di ogni file e il nome scritto sopra la prima pagina"],
     ["imp", "Il taglio ora sta esattamente a metà tra due pagine e si può trascinare per spostarlo; un clic secco lo toglie"],
@@ -1156,10 +1161,15 @@ function render() {
     } else if (cut) cut.remove();
     if (gi && gi.g.from === i) {
       if (!gn) {
-        gn = el("div", "gname", `<span class="dot"></span><input spellcheck="false" placeholder="nome file">`);
+        gn = el("div", "gname", `<span class="dot"></span><input spellcheck="false" placeholder="nome file"><button class="pen" title="Rinomina: seleziona tutto il nome"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L20 8l-4-4L4 16z"/></svg></button>`);
         const inp = gn.querySelector("input");
         inp.oninput = () => S.cutNames.set(+gn.dataset.gid, inp.value);
         inp.onclick = ev => ev.stopPropagation();
+        inp.onkeydown = ev => { if (ev.key === "Enter" || ev.key === "Escape") inp.blur(); };
+        gn.querySelector(".pen").onclick = ev => {
+          ev.stopPropagation(); ev.preventDefault();
+          inp.focus(); inp.select();   // tutto il nome selezionato: si riscrive subito
+        };
         c.append(gn);
       }
       gn.dataset.gid = gi.g.id;

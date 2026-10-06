@@ -3,6 +3,11 @@
 Tutte le modifiche a PDF Tool, dalla più recente.
 Tipi di modifica: **Nuovo**, **Migliorato**, **Correzione**.
 
+## [1.6.1] – 2026-10-06
+
+### Migliorato
+- Nella modalità divisione, accanto al nome di ogni file c'è una **matita**: cliccandola il nome viene selezionato per intero, così si riscrive subito senza cancellare a mano. Con Invio o Esc si conferma e si esce dal campo.
+
 ## [1.6.0] – 2026-09-23
 
 ### Migliorato
