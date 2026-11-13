@@ -3,6 +3,17 @@
 Tutte le modifiche a PDF Tool, dalla più recente.
 Tipi di modifica: **Nuovo**, **Migliorato**, **Correzione**.
 
+## [1.7.0] – 2026-11-13
+
+### Nuovo
+- **Zoom nell'anteprima**: pulsanti − e + nella barra (la percentuale torna ad "Adatta" con un clic), **Ctrl+rotellina** o pizzico sul trackpad per ingrandire nel punto indicato dal cursore, tasti `+`, `−` e `0`. La pagina viene ridisegnata nitida a ogni livello, fino al 600%.
+- Nella pagina ingrandita ci si **sposta trascinando** con il mouse. In modalità censura o con timbri e testi, si tiene premuto **Spazio** mentre si trascina.
+- **Censura bianca**: in modalità censura si sceglie tra **Nero** e **Bianco** (tasto `W`, anche per cambiare colore al rettangolo selezionato). Selezionando un rettangolo bianco compare **Scrivi qui**, che apre la finestra Testo già posizionata sul rettangolo: così si **sostituisce un testo** con uno nuovo.
+
+### Migliorato
+- La censura bianca è sicura come quella nera: il testo coperto viene eliminato davvero, mentre il testo nuovo resta selezionabile e ricercabile.
+- Su schermi piccoli la barra della censura non copre più la pagina.
+
 ## [1.6.1] – 2026-10-06
 
 ### Migliorato

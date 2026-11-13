@@ -17,8 +17,9 @@ Non installa nulla, non ha bisogno di internet e **nessun dato lascia il tuo com
 - **Timbri**: applica immagini PNG o JPG (firme, loghi, timbri), spostabili e ridimensionabili, salvate nel browser e esportabili
 - **Testo**: blocchi di testo formattato che restano selezionabili e ricercabili nel PDF
 - **Censura**: copri con rettangoli neri le parti da nascondere, in modo sicuro (vedi sotto)
+- **Censura bianca e sostituzione del testo**: copri un testo con un rettangolo bianco e scrivine uno nuovo al suo posto
 - **File firmati .p7m**: estrae il PDF dalla busta firmata e mostra firmatario e data (senza verificare la validità della firma)
-- Anteprima ingrandita, annulla (Ctrl+Z), tema chiaro e scuro automatico
+- Anteprima con **zoom** fino al 600% per lavorare sui dettagli, annulla (Ctrl+Z), tema chiaro e scuro automatico
 
 ## Come si usa
 
@@ -36,6 +37,9 @@ Con gli altri browser i file finiscono nella cartella Download.
 |---|---|
 | Clic / Maiusc+clic | Seleziona una pagina / un intervallo |
 | Doppio clic | Anteprima ingrandita (← → per scorrere) |
+| `+` / `−` / `0` | Nell'anteprima: ingrandisci / riduci / adatta alla finestra (anche Ctrl+rotellina) |
+| `Spazio` + trascina | Nell'anteprima ingrandita: sposta la vista mentre censuri o modifichi |
+| `C` / `W` | Nell'anteprima: modalità censura / cambia colore nero ↔ bianco |
 | `Canc` | Elimina le pagine selezionate |
 | `R` / `Maiusc+R` | Ruota a destra / a sinistra |
 | `Ctrl+A` | Seleziona tutto |
@@ -66,10 +70,13 @@ Protegge solo l'apertura, senza limiti su stampa o copia. Se dimentichi la passw
 legale della firma, perché servirebbe una connessione. Per quella usa un verificatore ufficiale.
 Il PDF estratto e salvato è una copia **senza firma digitale**.
 
-**Censura:** ogni pagina con almeno un rettangolo nero viene salvata come immagine a 200 dpi, con il nero già dipinto sopra.
+**Censura:** ogni pagina con almeno un rettangolo nero o bianco viene salvata come immagine a 200 dpi, con i rettangoli già dipinti sopra.
 Così il contenuto coperto viene eliminato davvero, non solo nascosto. In cambio, **su quelle pagine si perdono testo selezionabile,
 ricerca e OCR**, oltre a link e commenti. Le altre pagine restano intatte. Conserva sempre l'originale: una volta sovrascritto,
 i dati censurati non si possono recuperare.
+
+**Sostituire un testo:** in modalità censura scegli **Bianco**, copri il testo da cambiare, poi con il rettangolo selezionato premi **Scrivi qui**.
+Il nuovo testo viene posizionato sul rettangolo e resta testo vero, selezionabile, anche sopra la pagina trasformata in immagine.
 
 **Timbri:** le immagini salvate restano in questo browser, su questo computer (archivio locale IndexedDB), e non vengono mai inviate da nessuna parte.
 Possono azzerarsi se svuoti i dati del browser o sposti il file HTML: usa **Esporta** per tenerne un backup.

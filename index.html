@@ -218,13 +218,31 @@ body.cutting .card.ge::after{right:0}
 .part .pg{font-size:12px;color:var(--muted);width:110px;flex:none;text-align:right}
 .part .btn{height:32px}
 
-.preview .modal{width:min(1000px,100%);height:calc(100vh - 40px)}
-.pv-stage{flex:1;display:grid;place-items:center;overflow:auto;background:var(--surface-2);padding:16px}
+.preview .modal{width:min(1000px,100%);height:calc(100vh - 40px);min-width:0;overflow:hidden}
+.preview.modal-bg{grid-template-columns:minmax(0,1fr);justify-items:center}
+.pv-stage{flex:1;display:flex;overflow:auto;background:var(--surface-2);padding:16px;position:relative;min-height:0;min-width:0;border-radius:0 0 16px 16px}
+.pv-stage.grab{cursor:grab}
+.pv-stage.grab .pvlayer,.pv-stage.grab .pvlayer *{cursor:inherit!important}
+.pv-stage.panning,.pv-stage.panning *{cursor:grabbing!important}
 .pv-stage canvas{background:#fff;display:block}
-.pvwrap{position:relative;box-shadow:0 2px 12px rgba(0,0,0,.25);line-height:0;touch-action:none}
+.pvwrap{margin:auto;flex:none;position:relative;box-shadow:0 2px 12px rgba(0,0,0,.25);line-height:0;touch-action:none}
 .pvlayer{position:absolute;inset:0;container-type:inline-size}
 .pvlayer.edit{cursor:crosshair}
 .rd{position:absolute;background:#000}
+.rd.w{background:#fff}
+.pvlayer.edit .rd.w{outline:1px dashed rgba(0,0,0,.45);outline-offset:-1px}
+.rdl i.w{background:#fff;outline:1px dashed rgba(0,0,0,.3);outline-offset:-1px}
+.pvzoom{display:flex;align-items:center;gap:2px}
+.pvzoom .btn.icon{width:32px;height:32px}
+.pvzoom #pvZoomV{height:32px;min-width:58px;padding:0 6px;justify-content:center;font-variant-numeric:tabular-nums;font-size:12.5px}
+.seg{display:inline-flex;border:1px solid var(--border-strong);border-radius:8px;overflow:hidden;flex:none}
+.seg button{border:0;background:var(--surface);height:28px;padding:0 10px;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;color:var(--text)}
+.seg button+button{border-left:1px solid var(--border-strong)}
+.seg button i{width:11px;height:11px;border-radius:3px;border:1px solid var(--border-strong);display:block}
+.seg button.on{background:var(--accent-soft);color:var(--accent)}
+.pvwarn .acts{display:flex;gap:8px;flex-wrap:wrap;align-items:center;flex:none;justify-content:flex-end}
+@media (max-width:640px){.pvwarn{flex-direction:column;padding:8px 12px}.pvwarn .t{max-height:22vh;overflow:auto;font-size:12px}.pvwarn .acts{justify-content:flex-start}}
+.pvwarn kbd,.pvhelp kbd{font:11px ui-monospace,monospace;border:1px solid var(--border-strong);border-bottom-width:2px;border-radius:4px;padding:0 4px;background:var(--surface-2)}
 .pvlayer.edit .rd{cursor:move;outline:1px dashed rgba(255,255,255,.55);outline-offset:-3px}
 .pvlayer.edit .rd.sel{outline:2px solid var(--accent);outline-offset:1px}
 .rd .h,.rd .x{position:absolute;display:none}
@@ -346,7 +364,7 @@ body.cutting .card.ge::after{right:0}
 </main>
 <footer class="appfoot">
   <span class="by">made by <b>TheRealGibo</b></span>
-  <span class="hint" id="hint" hidden>Clic per selezionare · <kbd>Maiusc</kbd>+clic per un intervallo · trascina per riordinare · doppio clic per ingrandire · <kbd>Canc</kbd> elimina · <kbd>R</kbd> ruota · <kbd>Ctrl</kbd>+<kbd>Z</kbd> annulla · censura dall'anteprima</span>
+  <span class="hint" id="hint" hidden>Clic per selezionare · <kbd>Maiusc</kbd>+clic per un intervallo · trascina per riordinare · doppio clic per l'anteprima, dove puoi zoomare · <kbd>Canc</kbd> elimina · <kbd>R</kbd> ruota · <kbd>Ctrl</kbd>+<kbd>Z</kbd> annulla · censura dall'anteprima</span>
   <button class="linkbtn" id="bNews" title="Cosa c'è di nuovo">v<span id="appVer"></span> · Novità</button>
 </footer>
 
@@ -382,6 +400,12 @@ body.cutting .card.ge::after{right:0}
       <button class="btn icon" id="pvPrev" title="Precedente (←)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
       <button class="btn icon" id="pvNext" title="Successiva (→)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
       <div class="sep"></div>
+      <div class="pvzoom">
+        <button class="btn icon" id="pvZoomOut" title="Riduci (−)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5M8 11h6"/></svg></button>
+        <button class="btn" id="pvZoomV" title="Adatta alla finestra (0) · Ctrl+rotellina per ingrandire dove punti">Adatta</button>
+        <button class="btn icon" id="pvZoomIn" title="Ingrandisci (+)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5M11 8v6M8 11h6"/></svg></button>
+      </div>
+      <div class="sep"></div>
       <button class="btn icon" id="pvRotL" title="Ruota a sinistra"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg></button>
       <button class="btn icon" id="pvRotR" title="Ruota a destra"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg></button>
       <button class="btn" id="pvStamp" title="Applica un timbro su questa pagina"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21h14M6 17h12l-1-3.5a2 2 0 0 0-2-1.5h-1l.8-4a2.8 2.8 0 1 0-5.6 0l.8 4H9a2 2 0 0 0-2 1.5z"/></svg><span class="lbl">Timbro</span></button>
@@ -391,7 +415,7 @@ body.cutting .card.ge::after{right:0}
       <div class="sep"></div>
       <button class="btn ghost icon" data-close title="Chiudi (Esc)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
     </header>
-    <div class="pvwarn" id="pvWarn" hidden><div class="t"><b>Modalità censura.</b> Trascina sulla pagina per coprire una zona. Clic su un rettangolo per spostarlo o ridimensionarlo, <kbd>Canc</kbd> per eliminarlo, <kbd>Ctrl</kbd>+<kbd>Z</kbd> per annullare.<br>Al salvataggio questa pagina diventerà un'<b>immagine</b>: <b>si perdono testo selezionabile, ricerca e OCR</b>, e ciò che è sotto i rettangoli viene <b>cancellato per sempre</b>.</div><button class="btn" id="pvRdClear" style="height:30px">Rimuovi tutte</button></div>
+    <div class="pvwarn" id="pvWarn" hidden><div class="t"><b>Modalità censura.</b> Trascina sulla pagina per coprire una zona, in <b>nero</b> o in <b>bianco</b> (<kbd>W</kbd> cambia colore). Col bianco puoi <b>sostituire un testo</b>: copri quello vecchio e premi <b>Scrivi qui</b>. Clic su un rettangolo per spostarlo o ridimensionarlo, <kbd>Canc</kbd> per eliminarlo, <kbd>Ctrl</kbd>+<kbd>Z</kbd> per annullare. Tieni premuto <kbd>Spazio</kbd> e trascina per spostarti nella pagina ingrandita.<br>Al salvataggio questa pagina diventerà un'<b>immagine</b>: <b>si perdono testo selezionabile, ricerca e OCR</b>, e ciò che è sotto i rettangoli viene <b>cancellato per sempre</b>.</div><div class="acts"><div class="seg" id="pvRdColor" title="Colore dei rettangoli (W)"><button data-c="k"><i style="background:#000"></i>Nero</button><button data-c="w"><i style="background:#fff"></i>Bianco</button></div><button class="btn primary" id="pvRdWrite" style="height:30px" hidden title="Inserisci un testo al posto di quello coperto">Scrivi qui</button><button class="btn" id="pvRdClear" style="height:30px">Rimuovi tutte</button></div></div>
     <div class="pv-stage" id="pvStage"></div>
   </div>
 </div>
@@ -591,6 +615,12 @@ const ICON = {
 /* ---------------- versione e novità ----------------
    Per ogni nuova versione: aggiungere una voce IN CIMA a questa lista (e a CHANGELOG.md). */
 const CHANGELOG = [
+  { v: "1.7.0", date: "2026-11-13", items: [
+    ["new", "Zoom nell'anteprima: pulsanti − e +, Ctrl+rotellina (o pizzico sul trackpad) che ingrandisce dove punti, tasti + − e 0; la pagina viene ridisegnata nitida fino al 600%"],
+    ["new", "Nella pagina ingrandita ci si sposta trascinando con il mouse; mentre si censura o si spostano timbri e testi si tiene premuto Spazio"],
+    ["new", "Censura bianca: in modalità censura si sceglie Nero o Bianco (tasto W). Col bianco si copre un testo e con \"Scrivi qui\" se ne inserisce uno nuovo esattamente al suo posto"],
+    ["imp", "Anche la censura bianca è sicura: il testo coperto viene cancellato davvero, mentre il testo nuovo resta selezionabile e ricercabile"],
+  ]},
   { v: "1.6.1", date: "2026-10-06", items: [
     ["imp", "Nella divisione, accanto al nome di ogni file c'è una matita: cliccandola il nome viene selezionato tutto, pronto da riscrivere"],
   ]},
@@ -1080,7 +1110,7 @@ function applyRot(card, p) {
   // censure: rettangoli neri sulla miniatura (coordinate della pagina non ruotata dall'utente)
   const l = card.querySelector(".rdl");
   const rs = p.redacts || [];
-  if (l) l.innerHTML = rs.map(r => `<i style="left:${r.x * 100}%;top:${r.y * 100}%;width:${r.w * 100}%;height:${r.h * 100}%"></i>`).join("")
+  if (l) l.innerHTML = rs.map(r => `<i${r.c === "w" ? ' class="w"' : ""} style="left:${r.x * 100}%;top:${r.y * 100}%;width:${r.w * 100}%;height:${r.h * 100}%"></i>`).join("")
     + (p.items || []).map(it => itemHTML(p, it, false, false, false)).join("");
   let rb = card.querySelector(".redbadge");
   if (rs.length) { if (!rb) { rb = el("span", "redbadge", ICON.redact.replace(/15/g, "11") + "Censurata"); rb.title = "Al salvataggio questa pagina diventerà un'immagine: testo e OCR non saranno più selezionabili"; card.append(rb); } }
@@ -1373,8 +1403,10 @@ async function addRedactedPage(out, p, cache) {
   ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, c.width, c.height);
   await page.render({ canvasContext: ctx, viewport: vp }).promise;
   if (p.redacts?.length) {
-    ctx.fillStyle = "#000";
-    for (const r of p.redacts) ctx.fillRect(Math.floor(r.x * c.width) - 1, Math.floor(r.y * c.height) - 1, Math.ceil(r.w * c.width) + 2, Math.ceil(r.h * c.height) + 2);
+    for (const r of p.redacts) {
+      ctx.fillStyle = r.c === "w" ? "#fff" : "#000";
+      ctx.fillRect(Math.floor(r.x * c.width) - 1, Math.floor(r.y * c.height) - 1, Math.ceil(r.w * c.width) + 2, Math.ceil(r.h * c.height) + 2);
+    }
   }
   if (S.gray) { const g = toGray(c); c.width = c.height = 0; c = g; }
   const q = S.quality === 100 ? 0.72 : S.quality === 150 ? 0.82 : 0.9;
@@ -1765,10 +1797,13 @@ function useStamp(st) {
 }
 
 const FONT_CSS = { Helvetica: "Helvetica, Arial, sans-serif", Times: "'Times New Roman', Times, serif", Courier: "'Courier New', Courier, monospace" };
-let txtTarget = null;
-function openText(it) {
-  txtTarget = it || null;
-  const d = it || { text: "", font: "Helvetica", bold: false, italic: false, size: 14, color: "#000000", align: "left", opacity: 1 };
+let txtTarget = null, txtRect = null;
+function openText(it, rect = null) {
+  txtTarget = it || null; txtRect = it ? null : rect;
+  const p = curPage();
+  // "Scrivi qui" su una censura bianca: dimensione del carattere ricavata dall'altezza del rettangolo
+  const size = rect && p ? Math.max(4, Math.min(72, Math.round(rect.h * dispH(p) / 1.3))) : 14;
+  const d = it || { text: "", font: "Helvetica", bold: false, italic: false, size, color: "#000000", align: "left", opacity: 1 };
   $("#txtArea").value = d.text; $("#txtFont").value = d.font; $("#txtSize").value = d.size;
   $("#txtColor").value = d.color; $("#txtAlign").value = d.align;
   $("#txtOp").value = Math.round(d.opacity * 100); $("#txtOpV").textContent = Math.round(d.opacity * 100) + "%";
@@ -1793,7 +1828,8 @@ $("#txtOk").onclick = () => {
   if (txtTarget) setItems(p, (p.items || []).map(i => i.id === txtTarget.id ? { ...i, ...d } : i));
   else {
     const lines = text.split("\n").length, h = Math.min(0.9, (lines * d.size * 1.25) / dispH(p));
-    const it = { id: newId(), kind: "text", ...d, ...toBase(p, { x: 0.12, y: 0.45, w: 0.76, h }), rot: p.rot };
+    const r = txtRect, box = r ? { x: r.x, y: r.y, w: r.w, h: Math.min(1 - r.y, Math.max(r.h, h)) } : { x: 0.12, y: 0.45, w: 0.76, h };
+    const it = { id: newId(), kind: "text", ...d, ...toBase(p, box), rot: p.rot };
     addItem(p, it); selItem = it.id; setEditMode("items");
   }
   $("#txtModal").classList.remove("on");
@@ -2077,6 +2113,8 @@ $("#optReset").onclick = () => {
 
 /* ---------------- anteprima, censura ed elementi ---------------- */
 let pvId = null, pvTask = null, editMode = null, rdSel = null, rdWork = null, selItem = null, itWork = null;
+let rdColor = "k", pvZoom = 1, pvFit = 1, pvRedrawT = null, panKey = false;
+const ZMIN = 1, ZMAX = 6, ZSTEPS = [1, 1.25, 1.5, 2, 2.5, 3, 4, 5, 6];
 const curPage = () => S.pages.find(p => p.id === pvId);
 // Coordinate normalizzate 0..1. "base" = pagina senza la rotazione dell'utente; "display" = come mostrata.
 function rotPt(r, u, v) { return r === 90 ? [1 - v, u] : r === 180 ? [1 - u, 1 - v] : r === 270 ? [v, 1 - u] : [u, v]; }
@@ -2109,7 +2147,8 @@ function itemHTML(p, it, edit, sel, display) {
 }
 
 async function openPreview(id, mode = null) {
-  pvId = id; rdSel = null; rdWork = null; selItem = null; itWork = null;
+  pvId = id; rdSel = null; rdWork = null; selItem = null; itWork = null; pvZoom = 1; zoomLabel();
+  $("#pvStage").scrollTo(0, 0);
   setEditMode(mode);
   $("#pvModal").classList.add("on");
   await drawPreview();
@@ -2123,6 +2162,7 @@ function setEditMode(mode) {
   if (wasWarn !== !$("#pvWarn").hidden && pvId != null && $("#pvModal").classList.contains("on")) { drawPreview(); return; }
   const l = $("#pvStage .pvlayer");
   if (l) { l.classList.toggle("edit", editMode === "redact"); l.classList.toggle("items", editMode === "items"); }
+  zoomLabel();
   drawLayer();
 }
 $("#pvRedact").onclick = () => setEditMode(editMode === "redact" ? null : "redact");
@@ -2147,39 +2187,65 @@ async function drawPreview() {
     p.vpW = base.width; p.vpH = base.height;
     const rotation = (page.rotate + p.rot) % 360;
     const vp1 = page.getViewport({ scale: 1, rotation });
-    const sw = stage.clientWidth - 32, sh = stage.clientHeight - 32;
-    const scale = Math.max(0.1, Math.min(sw / vp1.width, sh / vp1.height));
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    // offsetWidth comprende le barre di scorrimento: la misura "adatta" non cambia quando la pagina è ingrandita
+    const sw = stage.offsetWidth - 32, sh = stage.offsetHeight - 32;
+    pvFit = Math.max(0.1, Math.min(sw / vp1.width, sh / vp1.height));
+    const scale = pvFit * pvZoom;
+    const cssW = Math.floor(vp1.width * scale), cssH = Math.floor(vp1.height * scale);
+    // risoluzione del disegno: nitida a ogni zoom, ma entro i limiti di memoria dei canvas dei browser
+    const dpr = Math.max(0.25, Math.min(window.devicePixelRatio || 1, 2, Math.sqrt(16e6 / (cssW * cssH)), 8000 / Math.max(cssW, cssH)));
     const vp = page.getViewport({ scale: scale * dpr, rotation });
     const c = document.createElement("canvas");
     c.width = Math.ceil(vp.width); c.height = Math.ceil(vp.height);
-    c.style.width = Math.round(vp.width / dpr) + "px"; c.style.height = Math.round(vp.height / dpr) + "px";
+    c.style.width = cssW + "px"; c.style.height = cssH + "px";
     pvTask = page.render({ canvasContext: c.getContext("2d"), viewport: vp });
     await pvTask.promise;
     if (pvId !== p.id) return;
     const wrap = el("div", "pvwrap"), layer = el("div", "pvlayer" + (editMode === "redact" ? " edit" : editMode === "items" ? " items" : ""));
     wrap.append(c, layer);
+    const sl = stage.scrollLeft, st = stage.scrollTop;
     stage.replaceChildren(wrap);
+    stage.scrollLeft = sl; stage.scrollTop = st;
+    zoomLabel();
     bindLayer(layer);
     drawLayer();
   } catch (e) { if (e?.name !== "RenderingCancelledException") console.warn(e); }
 }
-function dispRects() { const p = curPage(); return rdWork || (p?.redacts || []).map(q => toDisp(p, q)); }
+const withC = (r, q) => (q.c === "w" ? { ...r, c: "w" } : r);
+function dispRects() { const p = curPage(); return rdWork || (p?.redacts || []).map(q => withC(toDisp(p, q), q)); }
 function dispItems() { const p = curPage(); return itWork || (p?.items || []).map(it => ({ ...it, ...toDisp(p, it) })); }
 function drawLayer() {
   const layer = $("#pvStage .pvlayer"); if (!layer) return;
   const p = curPage(); if (!p) return;
-  const rects = dispRects().map((r, i) => `<div class="rd${i === rdSel ? " sel" : ""}" data-i="${i}" style="left:${r.x * 100}%;top:${r.y * 100}%;width:${r.w * 100}%;height:${r.h * 100}%"><span class="x" data-x title="Elimina">${ICON.x}</span><span class="h" data-h title="Ridimensiona"></span></div>`).join("");
+  const rects = dispRects().map((r, i) => `<div class="rd${r.c === "w" ? " w" : ""}${i === rdSel ? " sel" : ""}" data-i="${i}" style="left:${r.x * 100}%;top:${r.y * 100}%;width:${r.w * 100}%;height:${r.h * 100}%"><span class="x" data-x title="Elimina">${ICON.x}</span><span class="h" data-h title="Ridimensiona"></span></div>`).join("");
   const items = dispItems().map(it => itemHTML(p, it, editMode === "items", it.id === selItem, true)).join("");
   layer.innerHTML = rects + items;
+  rdControls();
 }
+/* colore della censura: nero (predefinito) o bianco, per coprire un testo e scriverne uno nuovo al suo posto */
+function rdControls() {
+  const r = rdSel != null ? dispRects()[rdSel] : null;
+  const c = r ? (r.c === "w" ? "w" : "k") : rdColor;
+  document.querySelectorAll("#pvRdColor button").forEach(b => b.classList.toggle("on", b.dataset.c === c));
+  $("#pvRdWrite").hidden = !(editMode === "redact" && r?.c === "w");
+}
+function setRdColor(c) {
+  rdColor = c;
+  const list = dispRects().map(r => ({ ...r }));
+  if (rdSel != null && list[rdSel] && (list[rdSel].c === "w" ? "w" : "k") !== c) {
+    if (c === "w") list[rdSel].c = "w"; else delete list[rdSel].c;
+    commitRects(list);
+  } else rdControls();
+}
+document.querySelectorAll("#pvRdColor button").forEach(b => b.onclick = () => setRdColor(b.dataset.c));
+$("#pvRdWrite").onclick = () => { const r = rdSel != null ? dispRects()[rdSel] : null; if (r) openText(null, r); };
 function afterChange(p) {
   const card = S.cards.get(p.id); if (card) applyRot(card, p);
   drawLayer();
 }
 function commitRects(list) {
   const p = curPage(); if (!p) return;
-  snapshot(); p.redacts = list.map(q => toBase(p, q)); rdWork = null; afterChange(p);
+  snapshot(); p.redacts = list.map(q => withC(toBase(p, q), q)); rdWork = null; afterChange(p);
 }
 function commitItems(list) {
   const p = curPage(); if (!p) return;
@@ -2203,7 +2269,7 @@ function bindLayer(layer) {
     if (editMode === "items" && ovEl) { const it = dispItems().find(i => i.id === ovEl.dataset.it); if (it?.kind === "text") openText(it); }
   });
   layer.addEventListener("pointerdown", e => {
-    if (!editMode || e.button > 0) return;
+    if (!editMode || e.button > 0 || panKey) return;
     const [x, y] = pos(e);
     if (editMode === "items") {
       const ovEl = e.target.closest(".ov");
@@ -2226,7 +2292,7 @@ function bindLayer(layer) {
       rdSel = +rdEl.dataset.i;
       op = { kind: e.target.closest("[data-h]") ? "resize" : "move", x0: x, y0: y, orig: { ...list[rdSel] }, list, target: list[rdSel] };
     } else {
-      rdSel = list.length; list.push({ x, y, w: 0, h: 0 });
+      rdSel = list.length; list.push(rdColor === "w" ? { x, y, w: 0, h: 0, c: "w" } : { x, y, w: 0, h: 0 });
       op = { kind: "draw", x0: x, y0: y, list, target: list[rdSel] };
     }
     rdWork = list; layer.setPointerCapture(e.pointerId); drawLayer();
@@ -2260,6 +2326,62 @@ function pvMove(d) {
   const i = S.pages.findIndex(p => p.id === pvId) + d;
   if (i >= 0 && i < S.pages.length) { pvId = S.pages[i].id; rdSel = null; rdWork = null; selItem = null; itWork = null; drawPreview(); }
 }
+/* zoom dell'anteprima: 1 = pagina intera nella finestra. Il punto sotto il cursore resta fermo. */
+function zoomLabel() {
+  $("#pvZoomV").textContent = pvZoom <= 1.001 ? "Adatta" : Math.round(pvZoom * 100) + "%";
+  $("#pvZoomOut").disabled = pvZoom <= ZMIN + 0.001; $("#pvZoomIn").disabled = pvZoom >= ZMAX - 0.001;
+  $("#pvStage").classList.toggle("grab", pvZoom > 1.001 && !editMode);
+}
+function setPvZoom(z, cx, cy) {
+  z = Math.max(ZMIN, Math.min(ZMAX, z));
+  if (Math.abs(z - pvZoom) < 0.001) return;
+  const stage = $("#pvStage"), wrap = stage.querySelector(".pvwrap"), c = wrap?.querySelector("canvas");
+  const old = pvZoom; pvZoom = z; zoomLabel();
+  if (!c) { drawPreview(); return; }
+  const sb = stage.getBoundingClientRect();
+  if (cx == null) { cx = sb.left + stage.clientWidth / 2; cy = sb.top + stage.clientHeight / 2; }
+  const wb = wrap.getBoundingClientRect();
+  const u = (cx - wb.left) / wb.width, v = (cy - wb.top) / wb.height;
+  // subito: si ingrandisce il disegno attuale; poco dopo la pagina viene ridisegnata nitida
+  const w = parseFloat(c.style.width) / old * z, h = parseFloat(c.style.height) / old * z;
+  c.style.width = Math.floor(w) + "px"; c.style.height = Math.floor(h) + "px";
+  stage.scrollLeft = wrap.offsetLeft + u * w - (cx - sb.left);
+  stage.scrollTop = wrap.offsetTop + v * h - (cy - sb.top);
+  clearTimeout(pvRedrawT); pvRedrawT = setTimeout(drawPreview, 180);
+}
+function zoomStep(dir, cx, cy) {
+  const z = dir > 0 ? ZSTEPS.find(s => s > pvZoom + 0.01) ?? ZMAX : [...ZSTEPS].reverse().find(s => s < pvZoom - 0.01) ?? ZMIN;
+  setPvZoom(z, cx, cy);
+}
+$("#pvZoomIn").onclick = () => zoomStep(1);
+$("#pvZoomOut").onclick = () => zoomStep(-1);
+$("#pvZoomV").onclick = () => setPvZoom(1);
+$("#pvStage").addEventListener("wheel", e => {
+  if (!(e.ctrlKey || e.metaKey)) return; // Ctrl+rotellina, e il pizzico sul trackpad
+  e.preventDefault();
+  const dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY;
+  setPvZoom(pvZoom * Math.exp(-Math.max(-300, Math.min(300, dy)) * 0.0022), e.clientX, e.clientY);
+}, { passive: false });
+// spostarsi nella pagina ingrandita: trascinando (fuori dalle modalità di modifica) o con Spazio premuto
+(() => {
+  const stage = $("#pvStage"); let pan = null;
+  stage.addEventListener("pointerdown", e => {
+    if (e.button > 1 || pvZoom <= 1.001) return;
+    if (e.button === 0 && editMode && !panKey) return;
+    if (e.target.closest(".ov .x,.ov .h,.ov .e,.rd .x,.rd .h") && !panKey) return;
+    e.preventDefault(); e.stopPropagation();
+    pan = { x: e.clientX, y: e.clientY, sl: stage.scrollLeft, st: stage.scrollTop };
+    stage.setPointerCapture(e.pointerId); stage.classList.add("panning");
+  }, true);
+  stage.addEventListener("pointermove", e => {
+    if (!pan) return;
+    stage.scrollLeft = pan.sl - (e.clientX - pan.x); stage.scrollTop = pan.st - (e.clientY - pan.y);
+  });
+  const end = () => { pan = null; stage.classList.remove("panning"); };
+  stage.addEventListener("pointerup", end); stage.addEventListener("pointercancel", end);
+})();
+document.addEventListener("keyup", e => { if (e.key === " " && panKey) { panKey = false; $("#pvStage").classList.toggle("grab", pvZoom > 1.001 && !editMode); e.preventDefault(); } });
+window.addEventListener("blur", () => { panKey = false; });
 $("#pvPrev").onclick = () => pvMove(-1);
 $("#pvNext").onclick = () => pvMove(1);
 $("#pvRotL").onclick = () => { rotate([pvId], -90); drawPreview(); };
@@ -2305,6 +2427,17 @@ document.addEventListener("keydown", e => {
   if (typing) return;
   if (pvOpen) {
     if ($("#dlg").classList.contains("on")) return;
+    if (document.querySelector("#txtModal.on, #stModal.on")) return;
+    if (["+", "=", "-", "_", "0"].includes(e.key) && !e.altKey) {
+      e.preventDefault(); // anche con Ctrl: zooma la pagina, non tutto il programma
+      if (e.key === "0") setPvZoom(1); else zoomStep(e.key === "+" || e.key === "=" ? 1 : -1);
+      return;
+    }
+    if (e.key === " " && !mod) { e.preventDefault(); if (!panKey && pvZoom > 1.001) { panKey = true; $("#pvStage").classList.add("grab"); } return; }
+    if (e.key.toLowerCase() === "w" && !mod && editMode === "redact") {
+      const cur = rdSel != null ? (dispRects()[rdSel]?.c === "w" ? "w" : "k") : rdColor;
+      setRdColor(cur === "w" ? "k" : "w"); return;
+    }
     if (mod && e.key.toLowerCase() === "z") { e.preventDefault(); undo(); return; }
     if (editMode && (e.key === "Delete" || e.key === "Backspace")) { e.preventDefault(); if (!deleteSelected() && editMode === "items") toast("Seleziona prima un timbro o un testo."); return; }
     if (e.key.toLowerCase() === "c" && !mod) { setEditMode(editMode === "redact" ? null : "redact"); return; }
